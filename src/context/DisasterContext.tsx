@@ -177,24 +177,27 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const selectRegion = useCallback((region: RegionProfile) => {
+    if (!region) return
     setSelectedRegion(cloneRegion(region))
     setGpsOverride(null)
     setFilterScope("district")
-    setFlyToken((n) => n + 1)
+    setFlyToken((n) => (n <= 0 ? 1 : n + 1))
   }, [])
 
   const selectCustomLocation = useCallback(
     (label: string, lat: number, lon: number, state?: string, district?: string) => {
-      const terrain = synthesizeTerrainForCoords(lat, lon)
+      const validLat = Number.isFinite(lat) ? lat : 21.2
+      const validLon = Number.isFinite(lon) ? lon : 82.2
+      const terrain = synthesizeTerrainForCoords(validLat, validLon)
       const inferredDistrict = district || label.split(",")[0].trim()
       const inferredCity = label.split(",")[0].trim()
       const dynamicProfile: RegionProfile = {
-        id: `epicenter-${lat.toFixed(4)}-${lon.toFixed(4)}`,
+        id: `epicenter-${validLat.toFixed(4)}-${validLon.toFixed(4)}`,
         name: label,
         district: inferredDistrict,
-        state: state || (lat >= 28 ? "Northern Sector" : lat <= 21 ? "Peninsular Sector" : "Central Sector"),
+        state: state || (validLat >= 28 ? "Northern Sector" : validLat <= 21 ? "Peninsular Sector" : "Central Sector"),
         city: inferredCity,
-        coords: [lat, lon],
+        coords: [validLat, validLon],
         tempDelta: terrain.tempDelta,
         precipRate: terrain.precipRate,
         z500: terrain.z500,
@@ -215,9 +218,9 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       }
       setSelectedRegion(dynamicProfile)
       setFilterScope("district")
-      setGpsOverride({ lat, lon })
-      setFlyToken((n) => n + 1)
-      pushNotice("success", `Locked Synoptic Sector: ${label} [${lat.toFixed(3)}°, ${lon.toFixed(3)}°]`)
+      setGpsOverride({ lat: validLat, lon: validLon })
+      setFlyToken((n) => (n <= 0 ? 1 : n + 1))
+      pushNotice("success", `Locked Synoptic Sector: ${label} [${validLat.toFixed(3)}°, ${validLon.toFixed(3)}°]`)
     },
     [pushNotice],
   )

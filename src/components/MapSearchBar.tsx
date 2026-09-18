@@ -120,6 +120,7 @@ export function MapSearchBar() {
   function handleSelectGeocoded(result: NominatimResult) {
     const lat = Number.parseFloat(result.lat)
     const lon = Number.parseFloat(result.lon)
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return
     const city = result.address?.city || result.address?.town || result.address?.village || result.display_name.split(",")[0].trim()
     const state = result.address?.state || (lat >= 28 ? "Northern Sector" : lat <= 21 ? "Peninsular Sector" : "Central Sector")
     const district = result.address?.state_district || result.address?.county || result.address?.city_district || city
@@ -217,11 +218,12 @@ export function MapSearchBar() {
         <Button
           type="button"
           size="sm"
-          className="shrink-0 gap-1 bg-emerald-600 px-2.5 text-xs text-white hover:bg-emerald-500"
+          className="shrink-0 gap-1 bg-emerald-600 px-2 sm:px-2.5 text-xs text-white hover:bg-emerald-500"
           onClick={handleScanRisk}
+          title={t(activeLanguage, "scanRisk")}
         >
-          <ScanLine data-icon="inline-start" />
-          {t(activeLanguage, "scanRisk")}
+          <ScanLine className="size-3.5" />
+          <span className="hidden sm:inline">{t(activeLanguage, "scanRisk")}</span>
         </Button>
       </div>
 

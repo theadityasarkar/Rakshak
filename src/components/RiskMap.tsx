@@ -71,21 +71,33 @@ function FlyToTarget({
   const prevTokenRef = useRef(0)
 
   useEffect(() => {
-    // token === 0: Initial load / National Overview -> KEEP FULL INDIA VIEW
-    if (token === 0) {
-      map.setView([21.2, 82.2], 4.2)
-      return
-    }
-    // token === -1: Explicit reset to Full India View button
-    if (token === -1) {
-      map.flyTo([21.2, 82.2], 4.2, { duration: 1.4 })
-      prevTokenRef.current = -1
-      return
-    }
-    // Only fly to specific location when token > 0 and token actually changed!
-    if (token > 0 && token !== prevTokenRef.current) {
-      prevTokenRef.current = token
-      map.flyTo([lat, lon], 10, { duration: 1.5 })
+    try {
+      const container = map.getContainer()
+      if (!container || container.offsetWidth === 0 || container.offsetHeight === 0) {
+        return
+      }
+      map.invalidateSize()
+
+      // token === 0: Initial load / National Overview -> KEEP FULL INDIA VIEW
+      if (token === 0) {
+        map.setView([21.2, 82.2], 4.2)
+        return
+      }
+      // token === -1: Explicit reset to Full India View button
+      if (token === -1) {
+        map.flyTo([21.2, 82.2], 4.2, { duration: 1.4 })
+        prevTokenRef.current = -1
+        return
+      }
+      // Only fly to specific location when token > 0 and token actually changed!
+      if (token > 0 && token !== prevTokenRef.current) {
+        prevTokenRef.current = token
+        const targetLat = Number.isFinite(lat) ? lat : 21.2
+        const targetLon = Number.isFinite(lon) ? lon : 82.2
+        map.flyTo([targetLat, targetLon], 10, { duration: 1.5 })
+      }
+    } catch {
+      // Safely ignore animation interruptions or transient unmounts
     }
   }, [lat, lon, token, map])
 
@@ -175,8 +187,8 @@ export function RiskMap({
     return () => controller.abort()
   }, [showRainfallRadar])
 
-  const focusLat = gpsOverride?.lat ?? selectedRegion.coords[0]
-  const focusLon = gpsOverride?.lon ?? selectedRegion.coords[1]
+  const focusLat = (gpsOverride && Number.isFinite(gpsOverride.lat)) ? gpsOverride.lat : (Number.isFinite(selectedRegion?.coords?.[0]) ? selectedRegion.coords[0] : 21.2)
+  const focusLon = (gpsOverride && Number.isFinite(gpsOverride.lon)) ? gpsOverride.lon : (Number.isFinite(selectedRegion?.coords?.[1]) ? selectedRegion.coords[1] : 82.2)
   const tempDeltaVal =
     selectedRegion.tempDelta ??
     (selectedRegion.slope !== undefined ? Number(((selectedRegion.slope / 65) * 25 - 10).toFixed(1)) : 2.5)
@@ -240,10 +252,13 @@ export function RiskMap({
         .leaflet-popup-tip { background: #09090b; }
         .leaflet-container a.leaflet-popup-close-button { color: #a1a1aa; }
         .leaflet-control-attribution {
-          background: rgba(9,9,11,0.85) !important;
-          color: #a1a1aa !important;
+          background: rgba(9,9,11,0.65) !important;
+          color: #71717a !important;
+          font-size: 9px !important;
+          padding: 1px 6px !important;
+          border-radius: 4px 0 0 0;
         }
-        .leaflet-control-attribution a { color: #d4d4d8 !important; }
+        .leaflet-control-attribution a { color: #a1a1aa !important; }
       `}</style>
       <MapContainer
         center={[21.2, 82.2]}

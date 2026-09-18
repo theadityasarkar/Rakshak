@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Map, LayoutDashboard, Gauge, Radio } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { DashboardSidebar } from "@/components/dashboard/sidebar"
@@ -128,16 +128,24 @@ function DesktopLayout() {
 }
 
 export default function Page() {
-  return (
-    <>
-      {/* Mobile: show tab-based layout */}
-      <div className="lg:hidden h-screen">
-        <MobileLayout />
-      </div>
-      {/* Desktop: show original 3-column layout */}
-      <div className="hidden lg:block h-screen">
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)")
+    setIsDesktop(media.matches)
+    const listener = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    media.addEventListener("change", listener)
+    return () => media.removeEventListener("change", listener)
+  }, [])
+
+  // Initial SSR / hydration fallback
+  if (isDesktop === null) {
+    return (
+      <div className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-100">
         <DesktopLayout />
       </div>
-    </>
-  )
+    )
+  }
+
+  return isDesktop ? <DesktopLayout /> : <MobileLayout />
 }
