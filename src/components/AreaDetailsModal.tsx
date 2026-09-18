@@ -191,52 +191,52 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
                 <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
                   <Thermometer className="size-3.5 text-amber-400" />
-                  Live Temp
+                  Thermal Anomaly Δ
                 </div>
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
-                  {liveWeather ? `${liveWeather.temperature}°C` : "--"}
+                  {(selectedRegion.tempDelta ?? 2.5) > 0 ? `+${selectedRegion.tempDelta ?? 2.5}` : selectedRegion.tempDelta ?? 2.5}°C
                 </p>
                 <p className="text-[11px] text-zinc-400 truncate mt-0.5">
-                  {liveWeather ? liveWeather.weatherLabel : "Fetching telemetry..."}
+                  {Math.abs(selectedRegion.tempDelta ?? 2.5) > 4 ? "Severe Temp Deviation" : "Moderate Anomaly"}
                 </p>
               </div>
 
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
                 <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
                   <CloudRain className="size-3.5 text-sky-400" />
-                  24h Rainfall
+                  Precip Surge
                 </div>
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
-                  {selectedRegion.rainfall} mm
+                  {selectedRegion.precipRate ?? 35} mm/h
                 </p>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
-                  {selectedRegion.rainfall > 120 ? "⚠️ Heavy Runoff" : "Normal Precip"}
+                  {(selectedRegion.precipRate ?? 35) > 60 ? "⚠️ Torrential Cloudburst" : "Moderate Convective"}
                 </p>
               </div>
 
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
                 <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
-                  <MountainSnow className="size-3.5 text-emerald-400" />
-                  Slope Gradient
+                  <Activity className="size-3.5 text-emerald-400" />
+                  Z500 Pressure Anomaly
                 </div>
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
-                  {selectedRegion.slope}°
+                  {selectedRegion.z500 ?? 5650} gpm
                 </p>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
-                  {selectedRegion.slope > 35 ? "High Shear Stress" : "Stable Incline"}
+                  {Math.abs((selectedRegion.z500 ?? 5650) - 5600) > 200 ? "Strong Vorticity Dip" : "Synoptic Equilibrium"}
                 </p>
               </div>
 
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3">
                 <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
-                  <Droplets className="size-3.5 text-indigo-400" />
-                  Soil Saturation
+                  <Wind className="size-3.5 text-indigo-400" />
+                  Vertical Shear
                 </div>
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
-                  {selectedRegion.soil}%
+                  {selectedRegion.shear ?? 45} kts
                 </p>
                 <p className="text-[11px] text-zinc-400 mt-0.5">
-                  {selectedRegion.soil > 75 ? "High Pore-Pressure" : "Stable Matrix"}
+                  {(selectedRegion.shear ?? 45) > 50 ? "High Convective Shear" : "Moderate Boundary"}
                 </p>
               </div>
             </div>
@@ -245,10 +245,10 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  Landslide Vulnerability Assessment
+                  MoES Climatological Anomaly Evaluation
                 </span>
                 <span className="font-mono text-sm font-bold" style={{ color }}>
-                  {riskIndex}% Index
+                  {riskIndex}% Anomaly Index
                 </span>
               </div>
 
@@ -264,7 +264,7 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                 <div className="flex items-start gap-2.5">
                   <AlertTriangle className="size-4 shrink-0 text-amber-400 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-zinc-200">Active Advisory: </span>
+                    <span className="font-semibold text-zinc-200">Active MoES Advisory: </span>
                     {localize(selectedRegion.advice, activeLanguage)}
                   </div>
                 </div>
@@ -272,10 +272,10 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                 <div className="flex items-start gap-2.5">
                   <Navigation className="size-4 shrink-0 text-sky-400 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-zinc-200">Highway Corridor Status: </span>
+                    <span className="font-semibold text-zinc-200">Synoptic Transport Corridor Status: </span>
                     {selectedRegion.severity === "Critical" || selectedRegion.severity === "Severe"
-                      ? "High debris-flow risk along mountain highway passes. Heavy freight transit restricted."
-                      : "Corridors currently clear. Continuous geotechnical sensor surveillance active."}
+                      ? "High convective anomaly active along regional transport passes. Pre-deploy disaster response cells."
+                      : "Corridors currently operational. Continuous medium-range NWP tracking active."}
                   </div>
                 </div>
               </div>

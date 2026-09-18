@@ -19,8 +19,12 @@ interface NominatimResult {
     city?: string
     town?: string
     village?: string
+    suburb?: string
     state?: string
     county?: string
+    district?: string
+    state_district?: string
+    city_district?: string
   }
 }
 
@@ -116,10 +120,12 @@ export function MapSearchBar() {
   function handleSelectGeocoded(result: NominatimResult) {
     const lat = Number.parseFloat(result.lat)
     const lon = Number.parseFloat(result.lon)
-    const city = result.address?.city || result.address?.town || result.address?.village || result.display_name.split(",")[0]
-    const state = result.address?.state || "North Eastern Region"
-    selectCustomLocation(city, lat, lon, state)
-    setQuery(city)
+    const city = result.address?.city || result.address?.town || result.address?.village || result.display_name.split(",")[0].trim()
+    const state = result.address?.state || (lat >= 28 ? "Northern Sector" : lat <= 21 ? "Peninsular Sector" : "Central Sector")
+    const district = result.address?.state_district || result.address?.county || result.address?.city_district || city
+    const label = city !== district ? `${city} (${district})` : city
+    selectCustomLocation(label, lat, lon, state, district)
+    setQuery(label)
     setOpen(false)
   }
 
@@ -130,7 +136,10 @@ export function MapSearchBar() {
     setOpen(false)
   }
 
-  function handleScanRisk() {
+  async function handleScanRisk() {
+    const trimmed = query.trim()
+    if (!trimmed) return
+
     if (parsedCoords) {
       handleSelectCoords(parsedCoords)
       return
@@ -143,7 +152,26 @@ export function MapSearchBar() {
       handleSelectGeocoded(geocodedResults[0])
       return
     }
-    const ok = setSelectedRegionByName(query || selectedRegion.name)
+
+    // Direct asynchronous query on Enter or button click
+    setNominatimLoading(true)
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&countrycodes=in&limit=4&addressdetails=1`
+      const res = await fetch(url, { headers: { "Accept-Language": "en" } })
+      if (res.ok) {
+        const data = (await res.json()) as NominatimResult[]
+        if (data && data.length > 0) {
+          handleSelectGeocoded(data[0])
+          return
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      setNominatimLoading(false)
+    }
+
+    const ok = setSelectedRegionByName(trimmed)
     if (!ok && NER_REGIONS[0]) handleSelectLocal(NER_REGIONS[0])
   }
 
@@ -154,7 +182,7 @@ export function MapSearchBar() {
   }
 
   return (
-    <div className="pointer-events-auto relative w-full max-w-[320px] sm:max-w-md">
+    <div className="pointer-events-auto relative min-w-0 flex-1 sm:max-w-md">
       <div className="flex items-center gap-1 rounded-md border border-zinc-700/80 bg-zinc-950/90 p-1.5 shadow-lg backdrop-blur">
         <Search className="ml-1 size-3.5 shrink-0 text-zinc-400" />
         <Input
@@ -224,7 +252,7 @@ export function MapSearchBar() {
           {localSuggestions.length > 0 && (
             <div className="py-1">
               <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-                Verified NER Sectors
+                Monitored MoES Synoptic Hubs
               </p>
               {localSuggestions.map((region) => (
                 <button

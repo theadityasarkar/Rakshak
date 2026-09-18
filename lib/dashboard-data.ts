@@ -264,7 +264,7 @@ export const nerDistricts: NerDistrict[] = [
     riskIndex: 10,
     level: "safe",
     status: "Safe Zone",
-    advice: "Normal conditions. No landslide hazard.",
+    advice: "Normal conditions. Synoptically stable baseline.",
     aliases: ["silchar"],
   },
 ]
@@ -282,7 +282,7 @@ export function findNearestDistrict(lat: number, lon: number): NerDistrict {
   return nearest
 }
 
-export type ReportIssue = "Road Blocked" | "Crack Detected" | "Flooding" | "Landslide"
+export type ReportIssue = "Road Blocked" | "Convective Storm" | "Flooding" | "Cloudburst Surge"
 
 export interface FieldReport {
   id: string
@@ -308,7 +308,7 @@ export const fieldReports: FieldReport[] = [
   },
   {
     id: "r2",
-    issue: "Crack Detected",
+    issue: "Convective Storm",
     location: "Retaining Wall, Cherrapunji Rd",
     coordinates: "25.2702° N, 91.7323° E",
     timestamp: "14 min ago",
@@ -328,7 +328,7 @@ export const fieldReports: FieldReport[] = [
   },
   {
     id: "r4",
-    issue: "Crack Detected",
+    issue: "Convective Storm",
     location: "Hillside above Mangan town",
     coordinates: "27.5117° N, 88.5311° E",
     timestamp: "48 min ago",

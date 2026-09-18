@@ -1,80 +1,274 @@
-import { ACTION_LABEL, type Severity } from "@/src/data/ner-regions"
+import { ACTION_LABEL, type Severity, type Language } from "@/src/data/ner-regions"
 
 export function clamp(value: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, value))
 }
 
-export function computeRiskProbability(slope: number, rainfall: number, soil: number): number {
-  const slopeNorm = clamp(slope, 0, 65) / 65
-  const rainNorm = clamp(rainfall, 0, 350) / 350
-  const soilNorm = clamp(soil, 0, 100) / 100
-  // XGBoost-aligned Hazard Probability:
-  // Score = (0.35 * (Slope / 65) + 0.40 * (Rainfall / 350) + 0.15 * (Soil / 100) + 0.10)
-  const prob = 0.35 * slopeNorm + 0.40 * rainNorm + 0.15 * soilNorm + 0.10
-  return clamp(prob, 0.1, 1.0)
+/**
+ * In-Browser Live Physics Calculation (MoES PS 26078):
+ * Score = (0.35 * (|tempDelta| / 15) + 0.35 * (precipRate / 120) + 0.15 * (|z500 - 5600| / 350) + 0.15 * (shear / 75))
+ * Normalized output: [0.0, 1.0]
+ */
+export function computeAnomalyScore(
+  tempDelta: number,
+  precipRate: number,
+  z500: number,
+  shear = 45,
+): number {
+  const tNorm = Math.min(1, Math.abs(tempDelta) / 15)
+  const pNorm = Math.min(1, Math.max(0, precipRate) / 120)
+  const zNorm = Math.min(1, Math.abs(z500 - 5600) / 350)
+  const sNorm = Math.min(1, Math.max(0, shear) / 75)
+  const score = 0.35 * tNorm + 0.35 * pNorm + 0.15 * zNorm + 0.15 * sNorm
+  return clamp(score, 0, 1)
 }
 
-export function computeRiskIndex(slope: number, rainfall: number, soil: number): number {
-  const prob = computeRiskProbability(slope, rainfall, soil)
-  return clamp(Math.round(prob * 100), 0, 100)
+/**
+ * Spatio-Temporal Anomaly Hazard Index (%)
+ */
+export function computeAnomalyIndex(
+  tempDelta: number,
+  precipRate: number,
+  z500: number,
+  shear = 45,
+): number {
+  const score = computeAnomalyScore(tempDelta, precipRate, z500, shear)
+  return clamp(Math.round(score * 100), 0, 100)
 }
 
-export function severityFromTelemetry(slope: number, rainfall: number, soil: number): Severity {
-  const index = computeRiskIndex(slope, rainfall, soil)
-  if (index >= 75) return "Critical"
-  if (index >= 55) return "Severe"
-  if (index >= 35) return "Moderate"
+/**
+ * Dynamic Severity Levels based on Anomaly Score:
+ * Score >= 0.70 ➔ "Severe Climatological Anomaly" / "Critical Synoptic Alert" (Red Badge)
+ * Score 0.40 - 0.69 ➔ "Moderate Synoptic Perturbation" (Amber Badge)
+ * Score < 0.40 ➔ "Synoptically Stable" (Emerald Badge)
+ */
+export function severityFromScore(score: number): Severity {
+  if (score >= 0.85) return "Critical"
+  if (score >= 0.70) return "Severe"
+  if (score >= 0.40) return "Moderate"
   return "Low"
 }
 
+export function severityFromTelemetry(
+  tempDeltaOrSlope: number,
+  precipRateOrRain: number,
+  z500OrSoil: number,
+  shear = 45,
+): Severity {
+  // If called with legacy slope/rain/soil scale:
+  if (tempDeltaOrSlope > 15 || z500OrSoil < 500) {
+    const t = (tempDeltaOrSlope / 65) * 15
+    const p = (precipRateOrRain / 350) * 120
+    const z = 5200 + (z500OrSoil / 100) * 750
+    return severityFromScore(computeAnomalyScore(t, p, z, shear))
+  }
+  return severityFromScore(computeAnomalyScore(tempDeltaOrSlope, precipRateOrRain, z500OrSoil, shear))
+}
+
+/**
+ * Dynamic MoES Action Advisory Generator according to Anomaly Score & Telemetry Parameters
+ * Triggers MoES extreme weather warnings (Cloudburst, Heatwave, Depressions, Deluge)
+ */
+export function generateMoESAdvisory(
+  score: number,
+  tempDelta?: number,
+  precipRate?: number,
+  z500?: number,
+  shear?: number,
+  lang: "en" | "hi" | "as" = "en",
+): string {
+  // 1. Cloudburst Warning Trigger (High Precipitation Surge Rate)
+  if (precipRate !== undefined && precipRate >= 70) {
+    if (lang === "hi") {
+      return "एमओईएस रेड अलर्ट: तीव्र मेसोस्केल क्लाउडबर्स्ट चेतावनी। 70 मिमी/घंटा से अधिक वर्षा दर दर्ज। नदी बेसिन व निचले इलाकों को तुरंत खाली कराएं।"
+    }
+    if (lang === "as") {
+      return "MoES ৰেড এলাৰ্ট: তীব্ৰ ডাৱৰ বিস্ফোৰণ সতৰ্কবাণী। ৭০ মিমি/ঘণ্টাতকৈ অধিক বৃষ্টিপাত। নদী উপত্যকা খালী কৰক আৰু NDRF মোতায়েন কৰক।"
+    }
+    return "MoES RED ALERT: Severe Mesoscale Convective Cloudburst Warning. Surge rate >70 mm/hr detected. Pre-deploy SDRF/NDRF teams; mandate low-lying basin evacuation."
+  }
+
+  // 2. Severe Heatwave Warning Trigger (High Positive Thermal Anomaly Δ & Low Precip)
+  if (tempDelta !== undefined && tempDelta >= 5.0 && (precipRate ?? 0) < 25) {
+    if (lang === "hi") {
+      return "एमओईएस रेड अलर्ट: गंभीर सिनॉप्टिक हीटवेव रिज चेतावनी। सामान्य से +5°C अधिक तापीय विसंगति। दोपहर में खुले कार्य प्रतिबंधित करें व कूलिंग केंद्र सक्रिय करें।"
+    }
+    if (lang === "as") {
+      return "MoES ৰেড এলাৰ্ট: তীব্ৰ তাপপ্ৰবাহ সতৰ্কবাণী। স্বাভাৱিকতকৈ +৫°C অধিক উত্তাপ। বাহিৰৰ কাম সীমিত কৰক আৰু স্বাস্থ্য সতৰ্কতা জাৰি কৰক।"
+    }
+    return "MoES RED ALERT: Severe Synoptic Heatwave Ridge Warning. Thermal anomaly Δ exceeding +5°C above seasonal baseline. Enforce outdoor work restriction & activate cooling protocols."
+  }
+
+  // 3. Deep Cyclonic / Monsoon Depression Warning Trigger (Low Z500 Geopotential / High Shear)
+  if ((z500 !== undefined && z500 <= 5520) || (precipRate !== undefined && precipRate >= 45 && (shear ?? 0) >= 55)) {
+    if (lang === "hi") {
+      return "एमओईएस गंभीर चेतावनी: गहरा मॉनसून अवसाद व तटीय चक्रवाती दबाव। बंदरगाह संकेत IV जारी; तटीय व नौकायन संचालन पूर्णतः स्थगित।"
+    }
+    if (lang === "as") {
+      return "MoES গুৰুতৰ সতৰ্কবাণী: গভীৰ মৌচুমী অৱসাদ আৰু ঘূৰ্ণীবতাহ সংকট। বন্দৰ সংকেত IV জাৰি আৰু উপকূলীয় মাছমৰীয়াৰ যাত্ৰা নিষিদ্ধ।"
+    }
+    return "MoES SEVERE WARNING: Deep Synoptic Monsoon Depression & Coastal Vorticity Surge. Strong pressure dip & high shear. Suspend marine and transport operations."
+  }
+
+  // 4. Score-Based Severe Weather Alert
+  if (score >= 0.70) {
+    if (lang === "hi") {
+      return "एमओईएस गंभीर चेतावनी: उच्च मेसोस्केल संवहनी विसंगति। संवेदनशील परिवहन गलियारे बंद करें और जिला आपदा प्रबंधन कक्ष सक्रिय करें।"
+    }
+    if (lang === "as") {
+      return "MoES গুৰুতৰ সতৰ্কবাণী: উচ্চ মেচোস্কেল বতৰ বিসংগতি। বিপদসংকুল যাতায়ত বন্ধ কৰক আৰু দুৰ্যোগ ব্যৱস্থাপনা সতৰ্ক কৰক।"
+    }
+    return "MoES SEVERE ALERT: Multi-parameter Spatio-Temporal Weather Anomaly detected across medium-range numerical forecast ensemble. Alert regional disaster response forces (NDRF/SDRF)."
+  }
+
+  // 5. Moderate Synoptic Perturbation
+  if (score >= 0.40) {
+    if (lang === "hi") {
+      return "एमओईएस एम्बर वॉच: मध्यम मौसमी विक्षोभ। माध्यम-दूरी एनडब्ल्यूपी एन्सेम्बल और डॉपलर रडार से निरंतर निगरानी।"
+    }
+    if (lang === "as") {
+      return "MoES এম্বাৰ ৱাটচ: মধ্যম পৰ্যায়ৰ বতৰ আলোড়ন। এনডব্লিউপি আৰু ডপলাৰ ৰাডাৰেৰে নিৰন্তৰ নিৰীক্ষণ অব্যাহত।"
+    }
+    return "MoES AMBER WATCH: Moderate synoptic perturbation. Continuous medium-range NWP ensemble & Doppler radar tracking in progress."
+  }
+
+  // 6. Synoptically Stable Baseline
+  if (lang === "hi") {
+    return "एमओईएस ग्रीन एडवाइजरी: सिनॉप्टिक रूप से स्थिर स्थिति। सामान्य मौसमी अवलोकन व नियमित नागरिक संचालन अनुमत।"
+  }
+  if (lang === "as") {
+    return "MoES গ্ৰীণ এডভাইজৰী: স্থিতিশীল বতৰ। নিয়মীয়া পৰ্যবেক্ষণ আৰু সাধাৰণ কাম-কাজ অনুমোদিত।"
+  }
+  return "MoES GREEN ADVISORY: Synoptically stable baseline. Continuous medium-range numerical observation."
+}
+
+export function recommendedAction(severity: Severity, lang: Language): string {
+  return ACTION_LABEL[severity][lang] || ACTION_LABEL[severity].en
+}
+
+// Backward-compatible alias for computeRiskIndex
+export function computeRiskIndex(
+  a: number,
+  b: number,
+  c: number,
+  d = 45,
+): number {
+  if (a > 15 || c < 500) {
+    const t = (a / 65) * 15
+    const p = (b / 350) * 120
+    const z = 5200 + (c / 100) * 750
+    return computeAnomalyIndex(t, p, z, d)
+  }
+  return computeAnomalyIndex(a, b, c, d)
+}
+
+export function computeRiskProbability(slope: number, rainfall: number, soil: number): number {
+  return computeRiskIndex(slope, rainfall, soil) / 100
+}
+
 export function escalateAfterRainSpike(current: Severity): Severity {
-  if (current === "Critical") return "Critical"
   return "Critical"
 }
 
+/**
+ * Dynamic Extreme Weather Influence Radius Buffer (30km to 60km)
+ */
 export function bufferRadiusMeters(severity: Severity, riskIndex?: number): number {
-  const score = riskIndex ?? (severity === "Critical" ? 85 : severity === "Severe" ? 65 : severity === "Moderate" ? 45 : 20)
-  if (score >= 75) return 16000 // 16 km Critical Risk Buffer
-  if (score >= 55) return 12000 // 12 km Severe Risk Buffer
-  if (score >= 35) return 8000  // 8 km Moderate Risk Buffer
-  return 5000                   // 5 km Low Baseline Buffer
+  const score = riskIndex ?? (severity === "Critical" ? 92 : severity === "Severe" ? 75 : severity === "Moderate" ? 50 : 25)
+  // Dynamic buffer circle representing Extreme Weather Influence Radius (30km to 60km)
+  const radius = 30000 + (clamp(score, 0, 100) / 100) * 30000
+  return Math.round(radius)
 }
 
 export function severityColor(severity: Severity, riskIndex?: number): string {
-  const score = riskIndex ?? (severity === "Critical" ? 85 : severity === "Severe" ? 65 : severity === "Moderate" ? 45 : 20)
-  if (score >= 75) return "#ef4444" // Critical: Red >= 75%
-  if (score >= 55) return "#f97316" // Severe: Orange 55-74%
-  if (score >= 35) return "#f59e0b" // Moderate: Amber 35-54%
-  return "#10b981" // Low: Emerald < 35%
+  const score = riskIndex ?? (severity === "Critical" ? 92 : severity === "Severe" ? 75 : severity === "Moderate" ? 50 : 25)
+  if (score >= 70) return "#ef4444" // Severe / Critical Climatological Anomaly: Red >= 70%
+  if (score >= 40) return "#f59e0b" // Moderate Synoptic Perturbation: Amber 40-69%
+  return "#10b981"                 // Synoptically Stable: Emerald < 40%
 }
 
 export function synthesizeTerrainForCoords(lat: number, lon: number): {
+  tempDelta: number
+  precipRate: number
+  z500: number
+  shear: number
+  phenomenon: string
+  elevation: number
   slope: number
   rainfall: number
   soil: number
-  elevation: number
 } {
-  // Deterministic physics-informed terrain synthesizer from spatial coordinates
+  // Deterministic physics-informed weather anomaly synthesizer from spatial coordinates
   const latSeed = Math.abs(Math.sin(lat * 12.9898 + lon * 78.233) * 43758.5453) % 1
   const lonSeed = Math.abs(Math.cos(lat * 39.346 + lon * 11.135) * 23421.6312) % 1
 
-  const isHimalayanZone = lat >= 22.5 && lat <= 30.5 && lon >= 88.0 && lon <= 97.8
-  const baseSlope = isHimalayanZone ? 30 : 16
-  const slope = Math.round(baseSlope + latSeed * 30) // 25° - 60°
-  const rainfall = Math.round(60 + lonSeed * 240) // 60 - 300 mm
-  const soil = Math.round(30 + (rainfall / 350) * 48 + latSeed * 16) // 30 - 94%
-  const elevation = Math.round(isHimalayanZone ? 500 + latSeed * 1500 : 100 + lonSeed * 400)
+  const isEasternBasin = lat >= 22.0 && lat <= 29.5 && lon >= 88.0 && lon <= 97.8
+  const isNorthernHimalayas = lat >= 29.5 && lat <= 37.0 && lon >= 73.0 && lon <= 82.0
+  const isWesternCoast = lat >= 8.0 && lat <= 21.5 && lon >= 71.5 && lon <= 77.8
+  const isNWPlains = lat >= 25.0 && lat <= 32.0 && lon >= 69.0 && lon <= 76.5
+  const isBayOfBengal = lat >= 15.0 && lat <= 22.5 && lon >= 80.0 && lon <= 89.0
+
+  let tempDelta = 1.5
+  let precipRate = 25
+  let z500 = 5650
+  let shear = 35
+  let phenomenon = "Mesoscale Weather Perturbation"
+
+  if (isNWPlains) {
+    tempDelta = Number((6.5 + latSeed * 4.5).toFixed(1)) // +6.5°C to +11°C heatwave
+    precipRate = Math.round(lonSeed * 10)
+    z500 = Math.round(5850 + latSeed * 80)
+    shear = Math.round(15 + lonSeed * 15)
+    phenomenon = "Severe Synoptic Heatwave Ridge"
+  } else if (isWesternCoast) {
+    tempDelta = Number((-1.5 - latSeed * 2.0).toFixed(1))
+    precipRate = Math.round(75 + lonSeed * 40) // 75 - 115 mm/hr
+    z500 = Math.round(5650 + latSeed * 60)
+    shear = Math.round(50 + lonSeed * 20)
+    phenomenon = "Offshore Trough & Monsoon Depression"
+  } else if (isEasternBasin) {
+    tempDelta = Number((3.0 + latSeed * 2.5).toFixed(1))
+    precipRate = Math.round(60 + lonSeed * 40)
+    z500 = Math.round(5780 + latSeed * 60)
+    shear = Math.round(45 + lonSeed * 20)
+    phenomenon = "Mesoscale Convective Cloudburst Anomaly"
+  } else if (isBayOfBengal) {
+    tempDelta = Number((-2.0 - latSeed * 2.5).toFixed(1))
+    precipRate = Math.round(65 + lonSeed * 30)
+    z500 = Math.round(5560 + latSeed * 50)
+    shear = Math.round(50 + lonSeed * 20)
+    phenomenon = "Deep Cyclonic Vorticity Depression"
+  } else if (isNorthernHimalayas) {
+    tempDelta = Number((-4.5 - latSeed * 4.5).toFixed(1))
+    precipRate = Math.round(35 + lonSeed * 30)
+    z500 = Math.round(5350 + latSeed * 80)
+    shear = Math.round(35 + lonSeed * 20)
+    phenomenon = "Western Disturbance Cold Core Vortex"
+  } else {
+    tempDelta = Number(((latSeed - 0.5) * 8).toFixed(1))
+    precipRate = Math.round(latSeed * 55)
+    z500 = Math.round(5550 + lonSeed * 200)
+    shear = Math.round(25 + latSeed * 35)
+  }
+
+  const baseElevation = isNorthernHimalayas ? 1800 : isEasternBasin ? 350 : isWesternCoast ? 250 : isNWPlains ? 220 : 120
+  const elevation = Math.round(baseElevation + latSeed * 850)
+
+  const slope = Math.round(clamp((Math.abs(tempDelta) / 15) * 50 + 12, 10, 64))
+  const rainfall = Math.round(clamp(precipRate * 2.5, 15, 340))
+  const soil = Math.round(clamp(((z500 - 5200) / 750) * 100, 20, 96))
 
   return {
-    slope: clamp(slope, 10, 64),
-    rainfall: clamp(rainfall, 30, 340),
-    soil: clamp(soil, 25, 96),
-    elevation: Math.max(40, elevation),
+    tempDelta,
+    precipRate,
+    z500,
+    shear,
+    phenomenon,
+    elevation: Math.max(10, elevation),
+    slope,
+    rainfall,
+    soil,
   }
-}
-
-export function recommendedAction(severity: Severity, lang: "en" | "hi" | "as"): string {
-  return ACTION_LABEL[severity][lang]
 }
 
 export function formatCoord(lat: number, lon: number): string {
@@ -94,4 +288,47 @@ export function relativeTime(iso: string, lang: "en" | "hi" | "as"): string {
   }
   const hours = Math.round(mins / 60)
   return lang === "hi" ? `${hours} घं पहले` : lang === "as" ? `${hours} ঘণ্টা আগত` : `${hours} h ago`
+}
+
+/**
+ * Great-circle distance between two GPS coordinates using the Haversine formula (in kilometers)
+ */
+export function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Earth mean radius in km
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+/**
+ * Determines whether a station or incident is within the active district / operational disaster command sector
+ * Matches direct district name or falls within maxRadiusKm (default 160km).
+ */
+export function isLocationInSector(
+  itemLat: number,
+  itemLon: number,
+  itemDistrict: string | undefined,
+  itemState: string | undefined,
+  centerCoords: [number, number],
+  centerDistrict?: string,
+  centerState?: string,
+  maxRadiusKm = 160,
+): boolean {
+  // 1. Direct district match (case-insensitive substring)
+  if (itemDistrict && centerDistrict) {
+    const d1 = itemDistrict.toLowerCase().replace(/district/g, "").trim()
+    const d2 = centerDistrict.toLowerCase().replace(/district/g, "").trim()
+    if (d1.length > 2 && d2.length > 2 && (d1.includes(d2) || d2.includes(d1))) {
+      return true
+    }
+  }
+
+  // 2. Operational sector proximity (160km encompasses local district + adjoining transport corridors)
+  const dist = haversineDistanceKm(centerCoords[0], centerCoords[1], itemLat, itemLon)
+  return dist <= maxRadiusKm
 }

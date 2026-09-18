@@ -1,12 +1,22 @@
-export type Language = "en" | "hi" | "as"
+export type Language = "en" | "hi"
 export type Severity = "Critical" | "Severe" | "Moderate" | "Low"
-export type IncidentType = "Road Blockage" | "Crack / Slope Slip" | "Flash Flood" | "Rockfall"
+export type IncidentType =
+  | "Mesoscale Convective Cloudburst"
+  | "Offshore Trough Surge"
+  | "Severe Heatwave Ridge"
+  | "Deep Cyclonic Vorticity Depression"
+  | "Western Disturbance Vortex"
+  | "Flash Flood"
+  | "Urban Inundation"
+  | "Road Blockage"
+  | "Severe Gale / Microburst"
+  | "Orographic Deluge"
 export type SyncStatus = "synced" | "queued" | "syncing"
 
 export interface LocalizedText {
   en: string
   hi: string
-  as: string
+  as?: string
 }
 
 export interface RegionProfile {
@@ -16,47 +26,200 @@ export interface RegionProfile {
   state: string
   city: string
   coords: [number, number]
-  slope: number
-  rainfall: number
-  soil: number
+  // Extreme Weather Anomaly Telemetry (MoES PS 26078)
+  tempDelta?: number     // Thermal Anomaly Δ in °C (-10 to +15)
+  precipRate?: number    // Precipitation Surge Rate in mm/hr (0 to 120)
+  z500?: number          // Z500 Synoptic Geopotential Field in gpm (5200 to 5950)
+  shear?: number         // Vertical Wind Shear in kts (10 to 75)
+  phenomenon?: string    // Climatological Anomaly description
   elevation: number
   severity: Severity
   advice: LocalizedText
   status: LocalizedText
   aliases: string[]
+  // Legacy aliases for backward compatibility:
+  slope: number
+  rainfall: number
+  soil: number
 }
 
 export const SEVERITY_LABEL: Record<Severity, LocalizedText> = {
-  Critical: { en: "Critical", hi: "आलोचनात्मक", as: "সংকটজনক" },
-  Severe: { en: "Severe", hi: "गंभीर", as: "গুৰুতৰ" },
-  Moderate: { en: "Moderate", hi: "मध्यम", as: "মধ্যম" },
-  Low: { en: "Low / Safe", hi: "निम्न / सुरक्षित", as: "নিম্ন / সুৰক্ষিত" },
+  Critical: { en: "Critical Synoptic Alert", hi: "क्रिटिकल सिनॉप्टिक अलर्ट", as: "সংকটজনক সিনপটিক সতৰ্কবাণী" },
+  Severe: { en: "Severe Climatological Anomaly", hi: "गंभीर जलवायु विसंगति", as: "গুৰুতৰ জলবায়ু বিসংগতি" },
+  Moderate: { en: "Moderate Synoptic Perturbation", hi: "मध्यम सिनॉप्टिक विक्षोभ", as: "মধ্যম সিনপটিক আলোড়ন" },
+  Low: { en: "Synoptically Stable", hi: "मौसम स्थिर / सुरक्षित", as: "স্থিতিশীল বতৰ" },
 }
 
 export const ACTION_LABEL: Record<Severity, LocalizedText> = {
   Critical: {
-    en: "SDRF RED ALERT: Mandatory evacuation within 15km buffer. Deploy NDRF/SDRF units & close vulnerable corridors.",
-    hi: "एसडीआरएफ रेड अलर्ट: 15 किमी बफर के भीतर अनिवार्य निकासी। एनडीआरएफ/एसडीआरएफ तैनात करें और गलियारे बंद करें।",
-    as: "SDRF ৰেড এলাৰ্ট: ১৫ কিমি বাফাৰৰ ভিতৰত বাধ্যতামূলক উচ্ছেদ। NDRF/SDRF মোতায়েন কৰক আৰু কৰিডৰ বন্ধ কৰক।",
+    en: "MoES RED ALERT: Extreme synoptic weather anomaly active. Mandate coastal/basin evacuations & deploy NDRF quick-response teams.",
+    hi: "एमओईएस रेड अलर्ट: अत्यधिक मौसमी विसंगति सक्रिय। तटीय/बेसिन क्षेत्रों से निकासी व एनडीआरएफ दल तैनात करें।",
+    as: "MoES ৰেড এলাৰ্ট: চৰম বতৰৰ বিসংগতি সক্ৰিয়। উচ্ছেদ আৰু NDRF মোতায়েন কৰক।",
   },
   Severe: {
-    en: "SDRF RED ALERT: High debris-flow hazard. Deploy heavy clearance machinery and stage quick-response teams.",
-    hi: "एसडीआरएफ रेड अलर्ट: मलबा प्रवाह का उच्च जोखिम। त्वरित-प्रतिक्रिया दल और भारी मशीनरी तैनात करें।",
-    as: "SDRF ৰেড এলাৰ্ট: উচ্চ ধ্বংসাৱশেষ প্ৰবাহৰ আশংকা। দ্ৰুত-প্ৰতিক্ৰিয়া দল আৰু মেচিনাৰী মোতায়েন কৰক।",
+    en: "MoES SEVERE ALERT: High mesoscale convective anomaly. Restrict high-risk transport corridors & alert district disaster cells.",
+    hi: "एमओईएस गंभीर चेतावनी: उच्च मेसोस्केल संवहनी विसंगति। उच्च जोखिम वाले परिवहन गलियारे सीमित करें।",
+    as: "MoES গুৰুতৰ সতৰ্কবাণী: পৰিবহণ নিয়ন্ত্ৰণ আৰু সতৰ্কতা জাৰি কৰক।",
   },
   Moderate: {
-    en: "SDRF AMBER ADVISORY: Restrict heavy freight transit. Continuous telemetry watch of slope & pore-water saturation.",
-    hi: "एसडीआरएफ एम्बर एडवाइजरी: भारी माल ढुलाई सीमित करें। ढलान और मिट्टी संतृप्ति की निरंतर निगरानी करें।",
-    as: "SDRF এম্বাৰ পৰামৰ্শ: গধুৰ মালবাহী যান চলাচল সীমিত কৰক। ঢাল আৰু পানীৰ পৰিপূৰ্ণতা নিৰন্তৰ পৰ্যবেক্ষণ কৰক।",
+    en: "MoES AMBER WATCH: Moderate synoptic perturbation. Continuous medium-range NWP ensemble & Doppler radar tracking in progress.",
+    hi: "एमओईएस एम्बर वॉच: मध्यम मौसमी विक्षोभ। माध्यम-दूरी एनडब्ल्यूपी एन्सेम्बल और डॉपलर रडार से निरंतर निगरानी।",
+    as: "MoES এম্বাৰ ৱাটচ: মধ্যম পৰ্যায়ৰ বতৰ বিসংগতিৰ নিৰন্তৰ নিৰীক্ষণ।",
   },
   Low: {
-    en: "SDRF GREEN NORMAL: Routine geological observation. Baseline highway and civilian operations permitted.",
-    hi: "एसडीआरएफ ग्रीन नॉर्मल: नियमित भूवैज्ञानिक अवलोकन। सामान्य राजमार्ग और नागरिक संचालन अनुमत।",
-    as: "SDRF গ্ৰীণ নৰ্মাল: নিয়মীয়া ভূ-তাত্ত্বিক পৰ্যবেক্ষণ। নিয়মীয়া ৰাজপথ আৰু নাগৰিক কাৰ্য্যকলাপ অনুমোদিত।",
+    en: "MoES GREEN ADVISORY: Synoptically stable baseline. Routine meteorological observation permitted.",
+    hi: "एमओईएस ग्रीन एडवाइजरी: सिनॉप्टिक रूप से स्थिर स्थिति। सामान्य मौसमी अवलोकन जारी।",
+    as: "MoES গ্ৰীণ এডভাইজৰী: স্থিতিশীল বতৰ। নিয়মীয়া পৰ্যবেক্ষণ অব্যাহত ৰাখক।",
   },
 }
 
 export const NER_REGIONS: RegionProfile[] = [
+  // --- 5 HIGH-IMPACT INDIAN WEATHER ANOMALY HUBS (MoES PS 26078) ---
+  {
+    id: "brahmaputra-valley",
+    name: "Brahmaputra Basin (Cloudburst Hub)",
+    district: "Kamrup Metropolitan",
+    state: "Assam",
+    city: "Guwahati",
+    coords: [26.1445, 91.7362],
+    tempDelta: 4.2,
+    precipRate: 85,
+    z500: 5820,
+    shear: 52,
+    phenomenon: "Mesoscale Convective Cloudburst Anomaly",
+    elevation: 55,
+    severity: "Critical",
+    advice: {
+      en: "MoES CLOUDBURST ALERT: Mesoscale convective cells active over Brahmaputra riverine corridors. High flash flood probability; pre-deploy SDRF/NDRF.",
+      hi: "एमओईएस क्लाउडबर्स्ट अलर्ट: ब्रह्मपुत्र नदी घाटी में तीव्र संवहनी बादल। फ्लैश फ्लड की उच्च संभावना; एसडीआरएफ/एनडीआरएफ तैनात करें।",
+      as: "MoES ডাৱৰ বিস্ফোৰণ সতৰ্কবাণী: ব্ৰহ্মপুত্ৰ উপত্যকাত চৰম মেঘপুঞ্জ সক্ৰিয়। হঠাত বানপানীৰ আশংকা; SDRF/NDRF সাজু ৰাখক।",
+    },
+    status: {
+      en: "Critical Synoptic Alert — Cloudburst Anomaly (88% Index)",
+      hi: "क्रिटिकल सिनॉप्टिक अलर्ट — क्लाउडबर्स्ट विसंगति (88% सूचकांक)",
+      as: "সংকটজনক সিনপটিক সতৰ্কবাণী — ডাৱৰ বিস্ফোৰণ সংকট (88%)",
+    },
+    aliases: ["guwahati", "kamrup", "brahmaputra", "brahmaputra basin", "assam", "dispur"],
+    slope: 28,
+    rainfall: 85,
+    soil: 88,
+  },
+  {
+    id: "konkan-coastal-belt",
+    name: "Mumbai Coast (Monsoon Depression Hub)",
+    district: "Mumbai Suburban",
+    state: "Maharashtra",
+    city: "Mumbai",
+    coords: [19.0760, 72.8777],
+    tempDelta: -2.5,
+    precipRate: 110,
+    z500: 5690,
+    shear: 64,
+    phenomenon: "Offshore Trough & Extreme Monsoon Depression",
+    elevation: 14,
+    severity: "Critical",
+    advice: {
+      en: "MoES RED ALERT: Active offshore trough & monsoon depression. High urban runoff and coastal storm surge alert. Suspend marine operations.",
+      hi: "एमओईएस रेड अलर्ट: सक्रिय अपतटीय द्रोणी व मॉनसून अवसाद। भारी शहरी जलभराव व तटीय तूफानी लहर अलर्ट। नौकायन स्थगित रखें।",
+      as: "MoES ৰেড এলাৰ্ট: সক্ৰিয় উপকূলীয় মৌচুমী অৱসাদ। নগৰীয়া বান আৰু সাগৰীয় ঢৌৰ সতৰ্কবাণী। সাগৰীয় যাত্ৰা নিষিদ্ধ।",
+    },
+    status: {
+      en: "Critical Synoptic Alert — Extreme Monsoon Depression (92% Index)",
+      hi: "क्रिटिकल सिनॉप्टिक अलर्ट — चरम मॉनसून डिप्रेशन (92% सूचकांक)",
+      as: "সংকটজনক সিনপটিক সতৰ্কবাণী — চৰম মৌচুমী সংকট (92%)",
+    },
+    aliases: ["mumbai", "mumbai coast", "konkan", "colaba", "bandra", "thane", "maharashtra"],
+    slope: 15,
+    rainfall: 110,
+    soil: 92,
+  },
+  {
+    id: "nw-plains-bikaner",
+    name: "Rajasthan Plains (Severe Heatwave Hub)",
+    district: "Bikaner",
+    state: "Rajasthan",
+    city: "Bikaner",
+    coords: [28.0229, 73.3119],
+    tempDelta: 8.6,
+    precipRate: 0,
+    z500: 5910,
+    shear: 15,
+    phenomenon: "Severe Synoptic Heatwave Ridge",
+    elevation: 242,
+    severity: "Severe",
+    advice: {
+      en: "MoES RED ALERT: Severe Synoptic Heatwave Ridge. Extreme daytime thermal anomaly (+8.6°C). Agricultural and power grid cooling load peak advisory.",
+      hi: "एमओईएस रेड अलर्ट: गंभीर सिनॉप्टिक हीटवेव रिज। चरम तापीय विसंगति (+8.6°C)। कृषि और पावर ग्रिड कूलिंग लोड पीक एडवाइजरी।",
+      as: "MoES ৰেড এলাৰ্ট: তীব্ৰ সিনপটিক তাপপ্ৰবাহ। চৰম উত্তাপ বিসংগতি (+৮.৬°C)। কৃষি আৰু বিদ্যুৎ ব্যৱস্থাৰ বিশেষ সতৰ্কতা।",
+    },
+    status: {
+      en: "Severe Heat Hazard — Synoptic Ridge (79% Index)",
+      hi: "गंभीर ताप जोखिम — सिनॉप्टिक रिज (79% सूचकांक)",
+      as: "গুৰুতৰ তাপ বিপদ — সিনপটিক ৰিজ (79%)",
+    },
+    aliases: ["bikaner", "rajasthan plains", "churu", "rajasthan", "thar", "deshnoke"],
+    slope: 10,
+    rainfall: 0,
+    soil: 18,
+  },
+  {
+    id: "bay-of-bengal-puri",
+    name: "Bay of Bengal Arc (Cyclonic Depression Hub)",
+    district: "Puri",
+    state: "Odisha",
+    city: "Puri",
+    coords: [19.8135, 85.8312],
+    tempDelta: -3.8,
+    precipRate: 75,
+    z500: 5580,
+    shear: 58,
+    phenomenon: "Deep Cyclonic Vorticity Depression",
+    elevation: 10,
+    severity: "Severe",
+    advice: {
+      en: "MoES CYCLONIC DEPRESSION WARNING: Deep cyclonic vorticity depression in North Bay. Port warning signal level IV. Total suspension of artisanal fishing.",
+      hi: "एमओईएस चक्रवाती चेतावनी: उत्तर बंगाल की खाड़ी में गहरा चक्रवाती अवसाद। बंदरगाह चेतावनी संकेत स्तर IV। मत्स्य पालन पूर्णतः स्थगित।",
+      as: "MoES ঘূৰ্ণীবতাহ সতৰ্কবাণী: বংগোপসাগৰত গভীৰ ঘূৰ্ণীবতাহ অৱসাদ। বন্দৰ সতৰ্কবাণী সংকেত IV। মাছ ধৰা সম্পূৰ্ণ বন্ধ।",
+    },
+    status: {
+      en: "High Cyclonic Watch — Vorticity Depression (74% Index)",
+      hi: "उच्च चक्रवाती निगरानी — भंवर अवसाद (74% सूचकांक)",
+      as: "উচ্চ ঘূৰ্ণীবতাহ নিৰীক্ষণ (74% সূচক)",
+    },
+    aliases: ["puri", "bay of bengal", "bay of bengal arc", "odisha", "konark", "bhubaneswar"],
+    slope: 12,
+    rainfall: 75,
+    soil: 78,
+  },
+  {
+    id: "western-himalaya-shimla",
+    name: "Western Himalaya (Cold Vortex Hub)",
+    district: "Shimla",
+    state: "Himachal Pradesh",
+    city: "Shimla",
+    coords: [31.1048, 77.1734],
+    tempDelta: -7.4,
+    precipRate: 45,
+    z500: 5380,
+    shear: 42,
+    phenomenon: "Western Disturbance Cold Core Vortex",
+    elevation: 2206,
+    severity: "Moderate",
+    advice: {
+      en: "MoES AMBER WATCH: Western Disturbance upper-air cold core vortex. Orographic squall & heavy precipitation alerts along high-altitude transit passes.",
+      hi: "एमओईएस एम्बर वॉच: पश्चिमी विक्षोभ उच्च-वायु कोल्ड कोर भंवर। उच्च ऊंचाई वाले दर्रों पर भारी वर्षा और ठंड की चेतावनी।",
+      as: "MoES এম্বাৰ ৱাটচ: পশ্চিমীয়া নিম্নচাপ শীতল ঘূৰ্ণিবতাহ। পাহাৰীয়া অঞ্চলত প্ৰচণ্ড বৰষুণ আৰু তুষাৰপাত সতৰ্কবাণী।",
+    },
+    status: {
+      en: "Moderate Anomaly — Cold Core Vortex (55% Index)",
+      hi: "मध्यम विसंगति — कोल्ड कोर भंवर (55% सूचकांक)",
+      as: "মধ্যম বিসংগতি — শীতল ঘূৰ্ণি (55%)",
+    },
+    aliases: ["shimla", "western himalaya", "kullu", "himachal", "kufri", "solan"],
+    slope: 38,
+    rainfall: 45,
+    soil: 65,
+  },
   // --- MEGHALAYA ---
   {
     id: "east-khasi-hills",
@@ -315,14 +478,14 @@ export const NER_REGIONS: RegionProfile[] = [
     elevation: 1240,
     severity: "Critical",
     advice: {
-      en: "Active shear crack expansion along Teesta axis. Mandatory evacuation advisory.",
-      hi: "तीस्ता अक्ष पर सक्रिय दरार विस्तार। अनिवार्य निकासी सलाह।",
-      as: "তিস্তা অক্ষত সক্ৰিয় ফাট বিস্তাৰ। বাধ্যতামূলক উচ্ছেদ সতৰ্কবাণী।",
+      en: "Teesta basin severe convective cloudburst & sudden glacial lake drainage alert. High-risk zone advisory.",
+      hi: "तीस्ता बेसिन में मूसलाधार बारिश और क्लाउडबर्स्ट अलर्ट। आपातकालीन निगरानी दल तैनात करें।",
+      as: "তিস্তা অৱবাহিকাত তীব্ৰ ডাৱৰ বিস্ফোৰণ সতৰ্কবাণী। জৰুৰী নিৰীক্ষণ দল মোতায়েন কৰক।",
     },
     status: {
-      en: "Critical Evacuation — Teesta shear zone",
-      hi: "आलोचनात्मक निकासी — तीस्ता शियर ज़ोन",
-      as: "সংকটজনক উচ্ছেদ — তিস্তা শ্বিয়েৰ জোন",
+      en: "Critical Weather Anomaly — Teesta Convective Deluge",
+      hi: "क्रिटिकल मौसमी विसंगति — तीस्ता संवहनी प्रलय",
+      as: "সংকটজনক বতৰ বিসংগতি — তিস্তা প্ৰচণ্ড বৃষ্টিপাত",
     },
     aliases: ["mangan", "chungthang", "teesta", "sikkim", "north sikkim"],
   },
@@ -707,14 +870,14 @@ export const NER_REGIONS: RegionProfile[] = [
     elevation: 1132,
     severity: "Critical",
     advice: {
-      en: "Ridge-top settlement slope creep detected in Ramhlun and Laipuitlang. Evacuation alert.",
-      hi: "रामहलुन और लाईपुईत्लांग में पहाड़ी धंसाव सक्रिय। बस्ती खाली करने का अलर्ट।",
-      as: "ৰামহলুন আৰু লাইপুইৎলাঙত পাহাৰ খহি পৰাৰ সতৰ্কবাণী। উচ্ছেদ সূচনা।",
+      en: "Severe precipitation surge and torrential urban inundation alert for Aizawl ridge corridors.",
+      hi: "आइज़ोल रिज गलियारों में भारी वर्षा और तीव्र शहरी जलभराव की चेतावनी।",
+      as: "আইজলত প্ৰচণ্ড বৰষুণ আৰু নগৰীয়া বানৰ সতৰ্কবাণী।",
     },
     status: {
-      en: "Critical Red Alert — urban ridge sinking hazard",
-      hi: "क्रिटिकल रेड अलर्ट — शहरी पहाड़ी धंसाव खतरा",
-      as: "সংকটজনক ৰেড এলাৰ্ট — পাহাৰীয়া চহৰ খহি পৰাৰ আশংকা",
+      en: "Critical Red Alert — urban deluge & runoff hazard",
+      hi: "क्रिटिकल रेड अलर्ट — तीव्र वर्षा व जलभराव खतरा",
+      as: "সংকটজনক ৰেড এলাৰ্ট — তীব্ৰ বৃষ্টিপাত সংকট",
     },
     aliases: ["aizawl", "mizoram", "laipuitlang", "ramhlun"],
   },
@@ -829,14 +992,14 @@ export const NER_REGIONS: RegionProfile[] = [
     elevation: 16,
     severity: "Low",
     advice: {
-      en: "Normal plain conditions. Zero landslide risk in urban capital belt.",
-      hi: "सामान्य मैदानी स्थिति। शहरी राजधानी क्षेत्र में शून्य भूस्खलन जोखिम।",
-      as: "স্বাভাৱিক সমভূমি স্থিতি। ৰাজধানী অঞ্চলত ভূমিস্খলনৰ কোনো আশংকা নাই।",
+      en: "Normal plain conditions. Synoptically stable baseline in urban capital belt.",
+      hi: "सामान्य मैदानी स्थिति। राजधानी क्षेत्र में सिनॉप्टिक रूप से स्थिर स्थिति।",
+      as: "স্বাভাৱিক সমভূমি স্থিতি। ৰাজধানী অঞ্চলত স্থিতিশীল বতৰ।",
     },
     status: {
-      en: "Safe Zone — capital plain terrain",
-      hi: "सुरक्षित क्षेत्र — राजधानी मैदानी भूभाग",
-      as: "সুৰক্ষিত অঞ্চল — ৰাজধানী সমভূমি",
+      en: "Synoptically Stable — capital plain corridor",
+      hi: "सिनॉप्टिक रूप से स्थिर — राजधानी मैदानी गलियारा",
+      as: "স্থিতিশীল বতৰ — ৰাজধানী সমভূমি",
     },
     aliases: ["agartala", "west tripura"],
   },
@@ -864,12 +1027,556 @@ export const NER_REGIONS: RegionProfile[] = [
     },
     aliases: ["udaipur", "gomati", "tripura"],
   },
+
+  // ==========================================
+  // --- NORTHERN HIMALAYAS: UTTARAKHAND ---
+  // ==========================================
+  {
+    id: "joshimath",
+    name: "Joshimath (Chamoli)",
+    district: "Chamoli",
+    state: "Uttarakhand",
+    city: "Joshimath",
+    coords: [30.5526, 79.5630],
+    slope: 46,
+    rainfall: 160,
+    soil: 89,
+    elevation: 1890,
+    severity: "Critical",
+    advice: {
+      en: "Active ground subsidence and fissure expansion along Badrinath NH-58 bypass. Evacuate unstable slope zones.",
+      hi: "बद्रीनाथ एनएच-58 बाईपास पर भू-धंसाव व दरारों का विस्तार। ढलान वाले अस्थिर क्षेत्रों से तुरंत निकासी करें।",
+      as: "বদ্ৰীনাথ NH-58 বাইপাছত ভূ-খণ্ড তললৈ যোৱা আৰু ফাঁট মেলাৰ আশংকা। অসুৰক্ষিত অঞ্চল খালী কৰক।",
+    },
+    status: {
+      en: "Critical Sinking Zone — Chamoli active subsidence",
+      hi: "अति-संवेदनशील धंसाव क्षेत्र — चमोली सक्रिय भू-धंसाव",
+      as: "চৰম সংকটজনক অঞ্চল — চামোলী সক্ৰিয় ভূ-নিমজ্জন",
+    },
+    aliases: ["joshimath", "chamoli", "badrinath", "uttarakhand", "alaknanda"],
+  },
+  {
+    id: "kedarnath",
+    name: "Kedarnath Valley (Rudraprayag)",
+    district: "Rudraprayag",
+    state: "Uttarakhand",
+    city: "Rudraprayag",
+    coords: [30.2844, 78.9811],
+    slope: 52,
+    rainfall: 210,
+    soil: 92,
+    elevation: 2200,
+    severity: "Critical",
+    advice: {
+      en: "Mandakini river basin debris-flow warning. Restrict pilgrim transit and stage SDRF mountain rescue teams.",
+      hi: "मंदाकिनी नदी बेसिन में मलबे के प्रवाह की चेतावनी। तीर्थयात्रियों की आवाजाही सीमित करें और एसडीआरएफ तैनात करें।",
+      as: "মন্দাকিনী নদী উপত্যকাত ধ্বংসাৱশেষ প্ৰবাহৰ সতৰ্কবাণী। যাত্ৰী চলাচল সীমিত কৰক।",
+    },
+    status: {
+      en: "Critical Red Alert — high glacio-fluvial debris flow",
+      hi: "क्रिटिकल रेड अलर्ट — हिमनद-मलबा प्रवाह जोखिम",
+      as: "সংকটজনক ৰেড এলাৰ্ট — গ্লেচিয়াৰ ধ্বংসাৱশেষ প্ৰবাহ",
+    },
+    aliases: ["kedarnath", "rudraprayag", "mandakini", "guptkashi", "uttarakhand"],
+  },
+  {
+    id: "uttarkashi",
+    name: "Uttarkashi (Gangotri Axis)",
+    district: "Uttarkashi",
+    state: "Uttarakhand",
+    city: "Uttarkashi",
+    coords: [30.7268, 78.4354],
+    slope: 44,
+    rainfall: 175,
+    soil: 84,
+    elevation: 1158,
+    severity: "Severe",
+    advice: {
+      en: "NH-34 Gangotri axis severe convective precipitation surge reported. Restrict vehicular movement across mountain corridors.",
+      hi: "एनएच-34 गंगोत्री मार्ग पर तीव्र वर्षा व मौसमी विक्षोभ। पर्वतीय गलियारों पर यातायात सीमित करें।",
+      as: "NH-34 গংগোত্ৰী পথত ধুমুহা আৰু প্ৰচণ্ড বৰষুণৰ সতৰ্কবাণী।",
+    },
+    status: {
+      en: "Severe Risk — Gangotri corridor convective storm surge",
+      hi: "गंभीर जोखिम — गंगोत्री मार्ग संवहनी तूफान",
+      as: "গুৰুতৰ আশংকা — গংগোত্ৰী ধুমুহা সংকট",
+    },
+    aliases: ["uttarkashi", "gangotri", "dharasu", "uttarakhand"],
+  },
+  {
+    id: "nainital",
+    name: "Nainital Lake Catchment",
+    district: "Nainital",
+    state: "Uttarakhand",
+    city: "Nainital",
+    coords: [29.3919, 79.4542],
+    slope: 36,
+    rainfall: 125,
+    soil: 74,
+    elevation: 2084,
+    severity: "Moderate",
+    advice: {
+      en: "Kumaon hill catchment saturation monitored. Mallital slope toe erosion under watch.",
+      hi: "कुमाऊं पहाड़ी जलग्रहण क्षेत्र की संतृप्ति पर नजर। मल्लीताल ढलान के कटाव की निगरानी।",
+      as: "নৈনীতাল হ্ৰদ অঞ্চলৰ জলাধাৰ নিৰীক্ষণ। মল্লীতাল পাহাৰৰ খহনীয়া নিৰীক্ষণ।",
+    },
+    status: {
+      en: "Moderate Watch — lake fault line saturation",
+      hi: "मध्यम निगरानी — झील भ्रंश रेखा संतृप्ति",
+      as: "মধ্যম নিৰীক্ষণ — হ্ৰদ ভ্ৰংশ ৰেখা নিৰীক্ষণ",
+    },
+    aliases: ["nainital", "kumaon", "bhimtal", "uttarakhand"],
+  },
+  {
+    id: "pithoragarh",
+    name: "Pithoragarh (Dharchula)",
+    district: "Pithoragarh",
+    state: "Uttarakhand",
+    city: "Dharchula",
+    coords: [29.8500, 80.5300],
+    slope: 47,
+    rainfall: 195,
+    soil: 86,
+    elevation: 1650,
+    severity: "Severe",
+    advice: {
+      en: "Kali river gorge rockfalls and shooting stones along Lipulekh border route. Restrict night transit.",
+      hi: "काली नदी घाटी में लिपुलेख सीमा मार्ग पर चट्टान गिरने का खतरा। रात का आवागमन रोकें।",
+      as: "কালী নদী উপত্যকাৰ লিপুলেখ পথত শিল খহি পৰাৰ সংকট। নিশাৰ যাতায়াত বন্ধ কৰক।",
+    },
+    status: {
+      en: "Severe Alert — Kali river rockfall corridor",
+      hi: "गंभीर अलर्ट — काली नदी चट्टान गिरावट गलियारा",
+      as: "গুৰুতৰ সতৰ্কতা — কালী নদী শিল খহি পৰাৰ বিপদ",
+    },
+    aliases: ["pithoragarh", "dharchula", "lipulekh", "uttarakhand"],
+  },
+  {
+    id: "mussoorie",
+    name: "Dehradun (Mussoorie Bypass)",
+    district: "Dehradun",
+    state: "Uttarakhand",
+    city: "Mussoorie",
+    coords: [30.4598, 78.0644],
+    slope: 35,
+    rainfall: 110,
+    soil: 68,
+    elevation: 2005,
+    severity: "Moderate",
+    advice: {
+      en: "Main boundary thrust slope observation active. Normal traffic on Mussoorie-Dehradun route.",
+      hi: "मुख्य सीमा भ्रंश ढलान अवलोकन सक्रिय। मसूरी-देहरादून मार्ग पर सामान्य यातायात।",
+      as: "মুচৌৰী-ডেৰাডুন পথত স্বাভাৱিক যাতায়াত অব্যাহত।",
+    },
+    status: {
+      en: "Moderate Watch — Mussoorie ridge surveillance",
+      hi: "मध्यम निगरानी — मसूरी रिज निगरानी",
+      as: "মধ্যম নিৰীক্ষণ — মুচৌৰী পাহাৰ নিৰীক্ষণ",
+    },
+    aliases: ["mussoorie", "dehradun", "kempty", "uttarakhand"],
+  },
+
+  // ==========================================
+  // --- NORTHERN HIMALAYAS: HIMACHAL PRADESH ---
+  // ==========================================
+  {
+    id: "shimla",
+    name: "Shimla (Summer Hill Corridor)",
+    district: "Shimla",
+    state: "Himachal Pradesh",
+    city: "Shimla",
+    coords: [31.1048, 77.1734],
+    slope: 45,
+    rainfall: 190,
+    soil: 91,
+    elevation: 2276,
+    severity: "Critical",
+    advice: {
+      en: "Kalka-Shimla NH-5 and Summer Hill ridge slope instability. Immediate structural monitoring of retaining walls.",
+      hi: "कालका-शिमला एनएच-5 व समरहिल रिज पर भूस्खलन का उच्च जोखिम। रिटेनिंग दीवारों की तत्काल जांच करें।",
+      as: "কালকা-শ্বিমলা NH-5 আৰু ছামাৰ হিলত ভূমিস্খলনৰ চৰম বিপদ।",
+    },
+    status: {
+      en: "Critical Alert — urban hill ridge failure watch",
+      hi: "क्रिटिकल अलर्ट — शहरी पहाड़ी ढलान विफलता",
+      as: "সংকটজনক সতৰ্কবাণী — শ্বিমলা পাহাৰ খহি পৰাৰ আশংকা",
+    },
+    aliases: ["shimla", "summer hill", "kalka-shimla", "kufri", "himachal"],
+  },
+  {
+    id: "mandi",
+    name: "Mandi (Pandoh Dam Axis)",
+    district: "Mandi",
+    state: "Himachal Pradesh",
+    city: "Mandi",
+    coords: [31.7087, 76.9320],
+    slope: 43,
+    rainfall: 175,
+    soil: 87,
+    elevation: 760,
+    severity: "Severe",
+    advice: {
+      en: "Beas river canyon highway cuts vulnerable to mudslides. Mandi-Kullu bypass under standby clearance.",
+      hi: "ब्यास नदी घाटी में राजमार्ग पर मलबे का खतरा। मंडी-कुल्लू बाईपास पर मशीनरी तैनात रखें।",
+      as: "বিয়াছ নদী অঞ্চলত ৰাজপথত বোকামাটিৰ খহনীয়া।",
+    },
+    status: {
+      en: "Severe Risk — Pandoh reservoir bypass hazard",
+      hi: "गंभीर खतरा — पंडोह जलाशय बाईपास जोखिम",
+      as: "গুৰুতৰ বিপদ — পাণ্ডোহ জলভাণ্ডাৰ পথ সংকট",
+    },
+    aliases: ["mandi", "pandoh", "beas", "himachal"],
+  },
+  {
+    id: "kullu-manali",
+    name: "Kullu & Manali Valley",
+    district: "Kullu",
+    state: "Himachal Pradesh",
+    city: "Manali",
+    coords: [32.2396, 77.1887],
+    slope: 48,
+    rainfall: 185,
+    soil: 85,
+    elevation: 2050,
+    severity: "Severe",
+    advice: {
+      en: "Solang & Rohtang approach cuts experiencing torrential runoff. Restrict heavy traffic near riverbanks.",
+      hi: "सोलंग व रोहतांग मार्गों पर भारी बहाव। नदी किनारे भारी वाहनों का आवागमन रोकें।",
+      as: "মানালী-ৰোহটাং পথত প্ৰচণ্ড সোঁত আৰু ভূমিস্খলন।",
+    },
+    status: {
+      en: "Severe Watch — upper Beas debris-flow threat",
+      hi: "गंभीर निगरानी — ऊपरी ब्यास मलबा-प्रवाह संकट",
+      as: "গুৰুতৰ নিৰীক্ষণ — ওপৰৰ বিয়াছ নদীৰ পানী বৃদ্ধি",
+    },
+    aliases: ["manali", "kullu", "rohtang", "solang", "himachal"],
+  },
+  {
+    id: "kinnaur",
+    name: "Kinnaur (Nigulsari NH-5)",
+    district: "Kinnaur",
+    state: "Himachal Pradesh",
+    city: "Reckong Peo",
+    coords: [31.5360, 78.2750],
+    slope: 54,
+    rainfall: 140,
+    soil: 78,
+    elevation: 2290,
+    severity: "Critical",
+    advice: {
+      en: "Sutlej canyon vertical rock cliff shooting stones. Night traffic halted on NH-5 corridor.",
+      hi: "सतलुज घाटी की खड़ी चट्टानों से पत्थर गिरने की भारी संभावना। एनएच-5 पर रात का यातायात स्थगित।",
+      as: "শতদ্ৰু নদী উপত্যকাৰ ঠেক পথত শিল খহি পৰাৰ চৰম বিপদ।",
+    },
+    status: {
+      en: "Critical Rockfall Hazard — Nigulsari shooting stones",
+      hi: "क्रिटिकल रॉकफॉल खतरा — निगुलसरी चट्टान गिरावट",
+      as: "সংকটজনক শিলাপতন — নিগুলছাৰী সতৰ্কতা",
+    },
+    aliases: ["kinnaur", "reckong peo", "nigulsari", "nh-5", "himachal"],
+  },
+  {
+    id: "dharamshala",
+    name: "Kangra (Dharamshala / McLeod Ganj)",
+    district: "Kangra",
+    state: "Himachal Pradesh",
+    city: "Dharamshala",
+    coords: [32.2190, 76.3234],
+    slope: 38,
+    rainfall: 155,
+    soil: 82,
+    elevation: 1457,
+    severity: "Moderate",
+    advice: {
+      en: "Dhauladhar range foothills saturation elevated. Active monitoring of stormwater runoff channels.",
+      hi: "धौलाधार पर्वत तलहटी में उच्च संतृप्ति। तूफानी नालों की निरंतर निगरानी।",
+      as: "ধৌলাধাৰ পাহাৰৰ তলৰ অঞ্চলত বৰষুণৰ প্ৰভাৱ নিৰীক্ষণ।",
+    },
+    status: {
+      en: "Moderate Risk — Dhauladhar foothill slip watch",
+      hi: "मध्यम जोखिम — धौलाधार तलहटी फिसलन निगरानी",
+      as: "মধ্যম আশংকা — ধৌলাধাৰ নিৰীক্ষণ",
+    },
+    aliases: ["dharamshala", "kangra", "mcleodganj", "himachal"],
+  },
+
+  // ==========================================
+  // --- NORTHERN HIMALAYAS: JAMMU & KASHMIR & LADAKH ---
+  // ==========================================
+  {
+    id: "ramban",
+    name: "Ramban (NH-44 Corridor)",
+    district: "Ramban",
+    state: "Jammu & Kashmir",
+    city: "Ramban",
+    coords: [33.2430, 75.1950],
+    slope: 50,
+    rainfall: 210,
+    soil: 93,
+    elevation: 1156,
+    severity: "Critical",
+    advice: {
+      en: "Panthyal & Khooni Nala shooting stones and deep mudslips. Primary Jammu-Srinagar corridor blocked.",
+      hi: "पंथ्याल व खूनी नाला पर चट्टान गिरने और मलबे का भारी खतरा। जम्मू-श्रीनगर राष्ट्रीय राजमार्ग बंद।",
+      as: "পান্থিয়াল আৰু খুনী নালাত ভূমিস্খলন। জম্মু-শ্ৰীনগৰ ঘাইপথ বন্ধ।",
+    },
+    status: {
+      en: "Critical Blockage — NH-44 national lifeline slip",
+      hi: "क्रिटिकल ब्लॉकेज — एनएच-44 राष्ट्रीय जीवनरेखा अवरुद्ध",
+      as: "চৰম বন্ধ — NH-44 ঘাইপথ অৱৰোধ",
+    },
+    aliases: ["ramban", "nh-44", "panthyal", "khooni nala", "jammu", "kashmir"],
+  },
+  {
+    id: "doda-kishtwar",
+    name: "Doda & Kishtwar Gorge",
+    district: "Doda",
+    state: "Jammu & Kashmir",
+    city: "Doda",
+    coords: [33.1450, 75.5450],
+    slope: 47,
+    rainfall: 170,
+    soil: 86,
+    elevation: 1630,
+    severity: "Severe",
+    advice: {
+      en: "Chenab river valley slopes undergoing rotational shear. Restrict travel on Batote-Kishtwar highway.",
+      hi: "चिनाब नदी घाटी में ढलानों पर भूस्खलन। बटोत-किश्तवाड़ राजमार्ग पर यात्रा सीमित करें।",
+      as: "চিনাব নদী উপত্যকাত ভূমিস্খলনৰ আশংকা। বটোত-কিষ্টৱাৰ পথ সীমিত কৰক।",
+    },
+    status: {
+      en: "Severe Risk — Chenab river gorge slope slips",
+      hi: "गंभीर जोखिम — चिनाब नदी घाटी ढलान फिसलन",
+      as: "গুৰুতৰ বিপদ — চিনাব উপত্যকা সংকটাপন্ন",
+    },
+    aliases: ["doda", "kishtwar", "chenab", "kashmir"],
+  },
+  {
+    id: "srinagar",
+    name: "Srinagar (Harwan & Shankaracharya)",
+    district: "Srinagar",
+    state: "Jammu & Kashmir",
+    city: "Srinagar",
+    coords: [34.0837, 74.7973],
+    slope: 28,
+    rainfall: 85,
+    soil: 62,
+    elevation: 1585,
+    severity: "Low",
+    advice: {
+      en: "Jhelum valley baseline normal. Surface drainage clear and operational.",
+      hi: "झेलम घाटी सामान्य। सतही जल निकासी प्रणाली चालू व सुरक्षित।",
+      as: "ঝেলম উপত্যকাত স্বাভাৱিক অৱস্থা। পানী নিষ্কাশন কাৰ্যক্ষম।",
+    },
+    status: {
+      en: "Baseline Safe — valley drainage stable",
+      hi: "बेसलाइन सुरक्षित — घाटी जल निकासी स्थिर",
+      as: "সুৰক্ষিত স্থিতি — উপত্যকাত স্থিৰ অৱস্থা",
+    },
+    aliases: ["srinagar", "hazratbal", "kashmir", "jhelum", "dal lake", "jammu & kashmir", "jammu and kashmir"],
+  },
+  {
+    id: "hazratbal",
+    name: "Hazratbal (Srinagar)",
+    district: "Srinagar",
+    state: "Jammu & Kashmir",
+    city: "Srinagar",
+    coords: [34.1280, 74.8420],
+    slope: 24,
+    rainfall: 80,
+    soil: 60,
+    elevation: 1590,
+    severity: "Low",
+    advice: {
+      en: "Dal Lake northern basin telemetry safe. Standard municipal drainage monitoring in effect.",
+      hi: "डल झील उत्तरी बेसिन टेलीमेट्री सुरक्षित। मानक जल निकासी प्रणाली चालू।",
+      as: "ডাল হ্ৰদৰ উত্তৰ অঞ্চলৰ সুৰক্ষিত পৰ্যবেক্ষণ।",
+    },
+    status: {
+      en: "Baseline Safe — Dal Lake basin clear",
+      hi: "बेसलाइन सुरक्षित — डल झील क्षेत्र स्थिर",
+      as: "সুৰক্ষিত স্থিতি — ডাল হ্ৰদ সুস্থিৰ",
+    },
+    aliases: ["hazratbal", "srinagar", "dal lake", "kashmir", "jammu & kashmir", "jammu and kashmir"],
+  },
+  {
+    id: "kargil",
+    name: "Kargil (Zojila Approach)",
+    district: "Kargil",
+    state: "Ladakh",
+    city: "Kargil",
+    coords: [34.5539, 76.1349],
+    slope: 46,
+    rainfall: 90,
+    soil: 68,
+    elevation: 2676,
+    severity: "Severe",
+    advice: {
+      en: "Zojila pass scree slope shifts and dry rock avalanches under observation. Heavy transport escorted.",
+      hi: "ज़ोजिला दर्रे पर मलबे व चट्टानों के खिसकने पर नजर। भारी वाहनों को निगरानी में भेजा जाए।",
+      as: "জজিলা পাছত শিলাবৃষ্টি আৰু শুকান শিল খহি পৰাৰ আশংকা।",
+    },
+    status: {
+      en: "Severe Threat — Zojila high-altitude scree shift",
+      hi: "गंभीर खतरा — ज़ोजिला उच्च तुंगता मलबा विस्थापन",
+      as: "গুৰুতৰ সংকট — জজিলা উচ্চ অঞ্চল বিপদাপন্ন",
+    },
+    aliases: ["kargil", "zojila", "dras", "ladakh"],
+  },
+
+  // ==========================================
+  // --- WESTERN GHATS & SOUTHERN / CENTRAL INDIA ---
+  // ==========================================
+  {
+    id: "wayanad",
+    name: "Wayanad (Chooralmala & Meppadi)",
+    district: "Wayanad",
+    state: "Kerala",
+    city: "Kalpetta",
+    coords: [11.5540, 76.1320],
+    slope: 49,
+    rainfall: 290,
+    soil: 96,
+    elevation: 950,
+    severity: "Critical",
+    advice: {
+      en: "MoES RED ALERT: Extreme orographic deluge & localized cloudburst in Iruvaipuzha basin. Immediate floodway warning for low-lying tea estate settlements.",
+      hi: "एमओईएस रेड अलर्ट: इरुवाइपुझा बेसिन में अत्यधिक संवहनी वर्षा व क्लाउडबर्स्ट। निचले क्षेत्रों में बाढ़ की चेतावनी।",
+      as: "MoES ৰেড এলাৰ্ট: চুৰালমালাত প্ৰচণ্ড বৰষুণ আৰু ডাৱৰ বিস্ফোৰণ। নদী উপকূল অঞ্চলৰ বাবে সতৰ্কবাণী।",
+    },
+    status: {
+      en: "Critical Weather Anomaly — Chooralmala Extreme Deluge",
+      hi: "क्रिटिकल मौसमी विसंगति — चूरलमला अत्यधिक प्रलय",
+      as: "সংকটজনক বতৰ বিসংগতি — চুৰালমালা চৰম বৃষ্টিপাত",
+    },
+    aliases: ["wayanad", "chooralmala", "meppadi", "kalpetta", "kerala"],
+  },
+  {
+    id: "idukki",
+    name: "Idukki (Munnar Ghat Road)",
+    district: "Idukki",
+    state: "Kerala",
+    city: "Munnar",
+    coords: [10.0889, 77.0595],
+    slope: 44,
+    rainfall: 220,
+    soil: 90,
+    elevation: 1532,
+    severity: "Severe",
+    advice: {
+      en: "Gap Road and Pettimudi sectors vulnerable to sudden debris-slips. Ban nighttime hill driving on NH-85.",
+      hi: "गैप रोड और पेत्तिमुडी सेक्टर में अचानक भूस्खलन का जोखिम। एनएच-85 पर रात के वाहन संचालन पर प्रतिबंध।",
+      as: "মুন্নাৰ ঘাট পথত বিপজ্জনক ভূমিস্খলন। NH-85ত নিশা গাড়ী চলোৱা নিষেধ।",
+    },
+    status: {
+      en: "Severe Risk — Western Ghats monsoon slip corridor",
+      hi: "गंभीर जोखिम — पश्चिमी घाट मानसून फिसलन गलियारा",
+      as: "গুৰুতৰ বিপদ — পশ্চিম ঘাট মৌচুমী সংকট",
+    },
+    aliases: ["idukki", "munnar", "pettimudi", "gap road", "kerala"],
+  },
+  {
+    id: "raigad",
+    name: "Raigad (Mahad & Irshalwadi Sector)",
+    district: "Raigad",
+    state: "Maharashtra",
+    city: "Mahad",
+    coords: [18.9100, 73.2300],
+    slope: 47,
+    rainfall: 240,
+    soil: 92,
+    elevation: 420,
+    severity: "Critical",
+    advice: {
+      en: "High torrential saturation across Sahyadri slopes. Mandatory alert for tribal hamlets near ridge crowns.",
+      hi: "सह्याद्रि ढलानों पर भारी वर्षा से संतृप्ति। पहाड़ी चोटियों के समीप स्थित बस्तियों के लिए अनिवार्य चेतावनी।",
+      as: "সহ্যাদ্ৰী পাহাৰত ভয়ংকৰ ভূমিস্খলনৰ সতৰ্কবাণী।",
+    },
+    status: {
+      en: "Critical Red Alert — Irshalwadi slope liquidation risk",
+      hi: "क्रिटिकल रेड अलर्ट — इर्शालवाड़ी ढलान द्रवीकरण जोखिम",
+      as: "সংকটজনক ৰেড এলাৰ্ট — ইৰ্শালৱাড়ী সংকট",
+    },
+    aliases: ["raigad", "mahad", "irshalwadi", "konkan", "maharashtra"],
+  },
+  {
+    id: "pune-malin",
+    name: "Pune (Ambegaon / Malin Axis)",
+    district: "Pune",
+    state: "Maharashtra",
+    city: "Ambegaon",
+    coords: [19.1600, 73.6900],
+    slope: 42,
+    rainfall: 190,
+    soil: 88,
+    elevation: 780,
+    severity: "Severe",
+    advice: {
+      en: "Western Ghats contour terrace stability monitoring. Immediate clearing of blocked drainage culverts.",
+      hi: "पश्चिमी घाट कंटूर सीढ़ीनुमा ढलानों की निगरानी। अवरुद्ध जल निकासी नालों की तत्काल सफाई करें।",
+      as: "পশ্চিম ঘাট পাহাৰীয়া ঢাল নিৰীক্ষণ আৰু জল নিষ্কাশন ব্যৱস্থা পৰীক্ষা।",
+    },
+    status: {
+      en: "Severe Hazard — Malin memorial slope vulnerability",
+      hi: "गंभीर खतरा — मालिन ढलान संवेदनशीलता",
+      as: "গুৰুতৰ বিপদ — মালিন অঞ্চল নিৰীক্ষণ",
+    },
+    aliases: ["pune", "malin", "ambegaon", "bhimashankar", "maharashtra"],
+  },
+  {
+    id: "kodagu",
+    name: "Kodagu (Coorg - Madikeri)",
+    district: "Kodagu",
+    state: "Karnataka",
+    city: "Madikeri",
+    coords: [12.4244, 75.7382],
+    slope: 37,
+    rainfall: 170,
+    soil: 82,
+    elevation: 1150,
+    severity: "Moderate",
+    advice: {
+      en: "Brahmagiri hill slopes saturated by monsoon surge. Maintain telemetry watch on road cuttings.",
+      hi: "ब्रह्मगिरि पहाड़ी ढलान मानसून से संतृप्त। सड़क कटाई क्षेत्रों की निरंतर निगरानी।",
+      as: "ব্ৰহ্মগিৰি পাহাৰত বৰষুণৰ প্ৰভাৱত মাটি খহাৰ আশংকা।",
+    },
+    status: {
+      en: "Moderate Warning — Coorg coffee slope saturation",
+      hi: "मध्यम चेतावनी — कूर्ग पहाड़ी संतृप्ति",
+      as: "মধ্যম সতৰ্কতা — কুৰ্গ পাহাৰ সংপৃক্তি",
+    },
+    aliases: ["kodagu", "coorg", "madikeri", "karnataka"],
+  },
+  {
+    id: "nilgiris",
+    name: "The Nilgiris (Ooty & Coonoor)",
+    district: "Nilgiris",
+    state: "Tamil Nadu",
+    city: "Ooty",
+    coords: [11.4102, 76.6950],
+    slope: 40,
+    rainfall: 165,
+    soil: 81,
+    elevation: 2240,
+    severity: "Moderate",
+    advice: {
+      en: "Nilgiri Mountain Railway corridor monitoring. Heavy orographic rain surge alert across steep tea terraces.",
+      hi: "नीलगिरि माउंटेन रेलवे गलियारे की निगरानी। चाय बागान की ढलानों पर भारी पर्वतीय वर्षा अलर्ट।",
+      as: "নীলগিৰি পাহাৰীয়া ৰে'ল পথত প্ৰচণ্ড বৰষুণ আৰু ধুমুহাৰ পৰ্যবেক্ষণ।",
+    },
+    status: {
+      en: "Moderate Advisory — Nilgiri orographic rain surge",
+      hi: "मध्यम एडवाइजरी — नीलगिरि पर्वतीय वर्षा विक्षोभ",
+      as: "মধ্যম পৰামৰ্শ — নীলগিৰি বৰষুণৰ আলোড়ন",
+    },
+    aliases: ["nilgiris", "ooty", "coonoor", "tamil nadu"],
+  },
 ]
 
 export const DEFAULT_REGION = NER_REGIONS[0]
 
 export function localize(text: LocalizedText, lang: Language): string {
-  return text[lang]
+  return text[lang] || text.en || ""
 }
 
 export function findRegionByName(query: string): RegionProfile | undefined {
@@ -888,9 +1595,11 @@ export function findRegionByName(query: string): RegionProfile | undefined {
 export function searchRegions(query: string): RegionProfile[] {
   const q = query.trim().toLowerCase()
   if (!q) return [...NER_REGIONS]
-  return NER_REGIONS.filter((r) =>
-    [r.name, r.district, r.state, r.city, r.id, ...r.aliases].some((v) => v.toLowerCase().includes(q)),
-  )
+  const terms = q.split(/[, ]+/).filter((t) => t.length >= 2)
+  return NER_REGIONS.filter((r) => {
+    const haystack = [r.name, r.district, r.state, r.city, r.id, ...r.aliases].join(" ").toLowerCase()
+    return terms.length > 0 ? terms.every((term) => haystack.includes(term)) : haystack.includes(q)
+  })
 }
 
 export function findNearestRegion(lat: number, lon: number): RegionProfile {

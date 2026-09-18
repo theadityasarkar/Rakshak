@@ -11,14 +11,25 @@ import { useDisaster } from "@/src/context/DisasterContext"
 import { t } from "@/src/lib/i18n"
 import type { IncidentType } from "@/src/data/ner-regions"
 
-const INCIDENT_TYPES: IncidentType[] = ["Road Blockage", "Crack / Slope Slip", "Flash Flood", "Rockfall"]
+const INCIDENT_TYPES: IncidentType[] = [
+  "Mesoscale Convective Cloudburst",
+  "Offshore Trough Surge",
+  "Severe Heatwave Ridge",
+  "Deep Cyclonic Vorticity Depression",
+  "Western Disturbance Vortex",
+  "Flash Flood",
+  "Urban Inundation",
+  "Road Blockage",
+  "Severe Gale / Microburst",
+  "Orographic Deluge",
+]
 
 export function FieldIncidentModal() {
   const { addIncidentReport, isOfflineMode, selectedRegion, gpsOverride, triggerGpsLocate, activeLanguage } =
     useDisaster()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
-  const [incidentType, setIncidentType] = useState<IncidentType>("Road Blockage")
+  const [incidentType, setIncidentType] = useState<IncidentType>("Mesoscale Convective Cloudburst")
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [dragActive, setDragActive] = useState(false)
@@ -37,7 +48,7 @@ export function FieldIncidentModal() {
   }, [gpsOverride, selectedRegion, open])
 
   function resetForm() {
-    setIncidentType("Road Blockage")
+    setIncidentType("Mesoscale Convective Cloudburst")
     setPhotoPreview(null)
     setAnalyzing(false)
     setLat(String(selectedRegion.coords[0]))
@@ -67,10 +78,16 @@ export function FieldIncidentModal() {
   }
 
 const DEFAULT_INCIDENT_PHOTOS: Record<IncidentType, string> = {
-  "Road Blockage": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=400&q=80",
-  "Crack / Slope Slip": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-  "Rockfall": "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80",
+  "Mesoscale Convective Cloudburst": "https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=400&q=80",
+  "Offshore Trough Surge": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80",
+  "Severe Heatwave Ridge": "https://images.unsplash.com/photo-1504386106331-3e4e71712b38?auto=format&fit=crop&w=400&q=80",
+  "Deep Cyclonic Vorticity Depression": "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?auto=format&fit=crop&w=400&q=80",
+  "Western Disturbance Vortex": "https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22?auto=format&fit=crop&w=400&q=80",
   "Flash Flood": "https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=400&q=80",
+  "Urban Inundation": "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80",
+  "Road Blockage": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=400&q=80",
+  "Severe Gale / Microburst": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
+  "Orographic Deluge": "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80",
 }
 
   function handleSubmit() {
@@ -101,15 +118,15 @@ const DEFAULT_INCIDENT_PHOTOS: Record<IncidentType, string> = {
 
   return (
     <>
-      <Button
-        size="sm"
+      <button
+        type="button"
         onClick={openDrawer}
-        className="border border-red-400/30 bg-red-600 text-white hover:bg-red-600/90 focus-visible:ring-red-500"
+        className="relative group overflow-hidden flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 px-2.5 py-1.5 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.3)] border border-red-400/40 transition-all hover:scale-[1.02] hover:shadow-[0_0_18px_rgba(244,63,94,0.5)] active:scale-[0.98] whitespace-nowrap"
       >
-        <AlertTriangle data-icon="inline-start" />
-        <span className="hidden sm:inline">{t(activeLanguage, "newIncident")}</span>
-        <span className="sm:hidden">{t(activeLanguage, "report")}</span>
-      </Button>
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <AlertTriangle className="size-3.5 text-red-100 shrink-0" />
+        <span className="hidden sm:inline tracking-tight">{t(activeLanguage, "newIncident")}</span>
+      </button>
 
       {open && (
         <div className="fixed inset-0 z-[800] flex justify-end bg-black/50">

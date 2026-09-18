@@ -12,6 +12,7 @@ import {
 } from "react"
 import {
   ACTION_LABEL,
+  SEVERITY_LABEL,
   cloneRegion,
   DEFAULT_REGION,
   findNearestRegion,
@@ -23,6 +24,7 @@ import {
 import { SEED_INCIDENTS } from "@/src/data/seed-incidents"
 import { t } from "@/src/lib/i18n"
 import {
+  clamp,
   computeRiskIndex,
   escalateAfterRainSpike,
   severityFromTelemetry,
@@ -42,15 +44,21 @@ function createId(prefix: string): string {
 }
 
 function incidentSeverity(type: NewIncidentInput["type"]): IncidentReport["severity"] {
-  if (type === "Rockfall" || type === "Crack / Slope Slip") return "Severe"
-  if (type === "Flash Flood") return "Moderate"
-  return "Severe"
+  if (type === "Mesoscale Convective Cloudburst" || type === "Offshore Trough Surge") return "Critical"
+  if (type === "Severe Heatwave Ridge" || type === "Deep Cyclonic Vorticity Depression") return "Severe"
+  if (type === "Severe Gale / Microburst" || type === "Orographic Deluge") return "Severe"
+  if (type === "Flash Flood" || type === "Urban Inundation") return "Moderate"
+  return "Moderate"
 }
+
+export type FilterScope = "district" | "all"
 
 export interface DisasterStore {
   selectedRegion: RegionProfile
   activeLanguage: Language
   isOfflineMode: boolean
+  filterScope: FilterScope
+  setFilterScope: (scope: FilterScope) => void
   incidentReports: IncidentReport[]
   offlineQueue: IncidentReport[]
   visibleIncidents: IncidentReport[]
@@ -59,19 +67,32 @@ export interface DisasterStore {
   flyToken: number
   liveWeather: LiveWeatherReport | null
   weatherLoading: boolean
+  inspectingIncident: IncidentReport | null
+  setInspectingIncident: (incident: IncidentReport | null) => void
+  activeRightTab: "sliders" | "feed" | "split"
+  setActiveRightTab: (tab: "sliders" | "feed" | "split") => void
   setSelectedRegionByName: (name: string) => boolean
   selectRegion: (region: RegionProfile) => void
-  selectCustomLocation: (label: string, lat: number, lon: number, state?: string) => void
+  selectCustomLocation: (label: string, lat: number, lon: number, state?: string, district?: string) => void
   setActiveLanguage: (lang: Language) => void
   setOfflineMode: (value: boolean) => void
   addIncidentReport: (input: NewIncidentInput) => IncidentReport
   syncOfflineQueue: () => Promise<void>
   triggerGpsLocate: () => void
-  updateTelemetry: (partial: { slope?: number; rainfall?: number; soil?: number }) => void
+  updateTelemetry: (partial: {
+    tempDelta?: number
+    precipRate?: number
+    z500?: number
+    shear?: number
+    slope?: number
+    rainfall?: number
+    soil?: number
+  }) => void
   simulateSensorSpike: () => void
   dismissNotification: (id: string) => void
   pushNotice: (tone: AppNotification["tone"], message: string) => void
   resetToDefaultRegion: () => void
+  resetToIndiaView: () => void
 }
 
 const DisasterContext = createContext<DisasterStore | null>(null)
@@ -80,6 +101,7 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
   const [selectedRegion, setSelectedRegion] = useState<RegionProfile>(() => cloneRegion(DEFAULT_REGION))
   const [activeLanguage, setActiveLanguageState] = useState<Language>("en")
   const [isOfflineMode, setIsOfflineMode] = useState(false)
+  const [filterScope, setFilterScope] = useState<FilterScope>("all")
   const [incidentReports, setIncidentReports] = useState<IncidentReport[]>(SEED_INCIDENTS)
   const [offlineQueue, setOfflineQueue] = useState<IncidentReport[]>([])
   const [notifications, setNotifications] = useState<AppNotification[]>([])
@@ -87,6 +109,8 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
   const [flyToken, setFlyToken] = useState(0)
   const [liveWeather, setLiveWeather] = useState<LiveWeatherReport | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(false)
+  const [inspectingIncident, setInspectingIncident] = useState<IncidentReport | null>(null)
+  const [activeRightTab, setActiveRightTab] = useState<"sliders" | "feed" | "split">("sliders")
   const offlineQueueRef = useRef<IncidentReport[]>([])
   offlineQueueRef.current = offlineQueue
 
@@ -102,8 +126,10 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = window.localStorage.getItem(LANG_KEY)
-    if (saved === "en" || saved === "hi" || saved === "as") {
+    if (saved === "en" || saved === "hi") {
       setActiveLanguageState(saved)
+    } else {
+      setActiveLanguageState("en")
     }
     void loadOfflineQueue().then((items) => {
       if (items.length) setOfflineQueue(items)
@@ -123,8 +149,21 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       if (report) {
         setLiveWeather(report)
         setSelectedRegion((prev) => {
-          if (prev.elevation === report.elevation) return prev
-          return { ...prev, elevation: report.elevation }
+          return {
+            ...prev,
+            elevation: report.elevation,
+            tempDelta: report.tempDelta,
+            precipRate: report.precipRate,
+            z500: report.z500,
+            shear: report.shear,
+            severity: report.severity,
+            advice: ACTION_LABEL[report.severity],
+            status: {
+              en: `${SEVERITY_LABEL[report.severity].en} — ${report.weatherLabel}`,
+              hi: `${SEVERITY_LABEL[report.severity].hi} — ${report.weatherLabel}`,
+              as: `${SEVERITY_LABEL[report.severity].as} — ${report.weatherLabel}`,
+            },
+          }
         })
       }
       setWeatherLoading(false)
@@ -140,37 +179,45 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
   const selectRegion = useCallback((region: RegionProfile) => {
     setSelectedRegion(cloneRegion(region))
     setGpsOverride(null)
+    setFilterScope("district")
     setFlyToken((n) => n + 1)
   }, [])
 
   const selectCustomLocation = useCallback(
-    (label: string, lat: number, lon: number, state?: string) => {
+    (label: string, lat: number, lon: number, state?: string, district?: string) => {
       const terrain = synthesizeTerrainForCoords(lat, lon)
-      const severity = severityFromTelemetry(terrain.slope, terrain.rainfall, terrain.soil)
+      const inferredDistrict = district || label.split(",")[0].trim()
+      const inferredCity = label.split(",")[0].trim()
       const dynamicProfile: RegionProfile = {
         id: `epicenter-${lat.toFixed(4)}-${lon.toFixed(4)}`,
         name: label,
-        district: label,
-        state: state || "North Eastern Region",
-        city: label,
+        district: inferredDistrict,
+        state: state || (lat >= 28 ? "Northern Sector" : lat <= 21 ? "Peninsular Sector" : "Central Sector"),
+        city: inferredCity,
         coords: [lat, lon],
+        tempDelta: terrain.tempDelta,
+        precipRate: terrain.precipRate,
+        z500: terrain.z500,
+        shear: terrain.shear,
+        phenomenon: terrain.phenomenon,
         slope: terrain.slope,
         rainfall: terrain.rainfall,
         soil: terrain.soil,
         elevation: terrain.elevation,
-        severity,
-        advice: ACTION_LABEL[severity],
+        severity: "Low",
+        advice: ACTION_LABEL["Low"],
         status: {
-          en: `${severity} — spatial terrain evaluation`,
-          hi: `${ACTION_LABEL[severity].hi} — भू-स्थानिक मूल्यांकन`,
-          as: `${ACTION_LABEL[severity].as} — স্থানিক ভূ-খণ্ড মূল্যায়ন`,
+          en: `Syncing Live NWP Telemetry…`,
+          hi: `लाइव टेलीमेट्री सिंक हो रही है…`,
+          as: `লাইভ টেলিমেট্ৰি সংযোগ হৈ আছে…`,
         },
-        aliases: [label.toLowerCase()],
+        aliases: [label.toLowerCase(), inferredDistrict.toLowerCase(), inferredCity.toLowerCase()],
       }
       setSelectedRegion(dynamicProfile)
+      setFilterScope("district")
       setGpsOverride({ lat, lon })
       setFlyToken((n) => n + 1)
-      pushNotice("success", `Epicenter locked: ${label} [${lat.toFixed(3)}°, ${lon.toFixed(3)}°]`)
+      pushNotice("success", `Locked Synoptic Sector: ${label} [${lat.toFixed(3)}°, ${lon.toFixed(3)}°]`)
     },
     [pushNotice],
   )
@@ -188,6 +235,12 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
   const resetToDefaultRegion = useCallback(() => {
     selectRegion(DEFAULT_REGION)
   }, [selectRegion])
+
+  const resetToIndiaView = useCallback(() => {
+    setFlyToken(-1)
+    setFilterScope("all")
+    pushNotice("info", "Reset view to National Overview (Pan-India).")
+  }, [pushNotice])
 
   const addIncidentReport = useCallback(
     (input: NewIncidentInput): IncidentReport => {
@@ -271,48 +324,91 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
     )
   }, [activeLanguage, pushNotice, selectRegion])
 
-  const updateTelemetry = useCallback((partial: { slope?: number; rainfall?: number; soil?: number }) => {
-    setSelectedRegion((prev) => {
-      const slope = partial.slope ?? prev.slope
-      const rainfall = partial.rainfall ?? prev.rainfall
-      const soil = partial.soil ?? prev.soil
-      const severity = severityFromTelemetry(slope, rainfall, soil)
-      return {
-        ...prev,
-        slope,
-        rainfall,
-        soil,
-        severity,
-        advice: ACTION_LABEL[severity],
-        status: {
-          en: `${severity} — live telemetry`,
-          hi: `${ACTION_LABEL[severity].hi} — लाइव टेलीमेट्री`,
-          as: `${ACTION_LABEL[severity].as} — লাইভ টেলিমেট্ৰি`,
-        },
-      }
-    })
-  }, [])
+  const updateTelemetry = useCallback(
+    (partial: {
+      tempDelta?: number
+      precipRate?: number
+      z500?: number
+      shear?: number
+      slope?: number
+      rainfall?: number
+      soil?: number
+    }) => {
+      setSelectedRegion((prev) => {
+        const tempDelta =
+          partial.tempDelta ??
+          (partial.slope !== undefined
+            ? Number(((partial.slope / 65) * 25 - 10).toFixed(1))
+            : (prev.tempDelta ?? 2.5))
+        const precipRate =
+          partial.precipRate ??
+          (partial.rainfall !== undefined
+            ? Math.round((partial.rainfall / 350) * 120)
+            : (prev.precipRate ?? 35))
+        const z500 =
+          partial.z500 ??
+          (partial.soil !== undefined
+            ? Math.round(5200 + (partial.soil / 100) * 750)
+            : (prev.z500 ?? 5600))
+        const shear = partial.shear ?? prev.shear ?? 45
+
+        const slope = partial.slope ?? Math.round(clamp((Math.abs(tempDelta) / 15) * 50 + 12, 10, 64))
+        const rainfall = partial.rainfall ?? Math.round(clamp(precipRate * 2.5, 10, 340))
+        const soil = partial.soil ?? Math.round(clamp(((z500 - 5200) / 750) * 100, 15, 98))
+
+        const severity = severityFromTelemetry(tempDelta, precipRate, z500, shear)
+        return {
+          ...prev,
+          tempDelta,
+          precipRate,
+          z500,
+          shear,
+          slope,
+          rainfall,
+          soil,
+          severity,
+          advice: ACTION_LABEL[severity],
+          status: {
+            en: `${SEVERITY_LABEL[severity].en} — Live Telemetry`,
+            hi: `${SEVERITY_LABEL[severity].hi} — लाइव टेलीमेट्री`,
+            as: `${SEVERITY_LABEL[severity].as} — লাইভ টেলিমেট্ৰি`,
+          },
+        }
+      })
+    },
+    [],
+  )
 
   const simulateSensorSpike = useCallback(() => {
     setSelectedRegion((prev) => {
-      const rainfall = prev.rainfall + 60
-      const severity = escalateAfterRainSpike(prev.severity)
+      const precipRate = Math.min(120, (prev.precipRate ?? 35) + 30)
+      const tempDelta = Number(
+        (((prev.tempDelta ?? 2.5) > 0 ? (prev.tempDelta ?? 2.5) + 3.0 : (prev.tempDelta ?? 2.5) - 3.0)).toFixed(1),
+      )
+      const z500 = Math.min(5950, (prev.z500 ?? 5600) + 120)
+      const shear = Math.min(75, (prev.shear ?? 45) + 15)
+      const severity = severityFromTelemetry(tempDelta, precipRate, z500, shear)
       return {
         ...prev,
-        rainfall,
-        soil: Math.min(100, prev.soil + 8),
+        precipRate,
+        tempDelta,
+        z500,
+        shear,
+        rainfall: Math.min(350, prev.rainfall + 60),
+        soil: Math.min(100, prev.soil + 12),
+        slope: Math.min(65, prev.slope + 8),
         severity,
         advice: ACTION_LABEL[severity],
         status: {
-          en: `${severity} — rainfall spike +60mm`,
-          hi: `${ACTION_LABEL[severity].hi} — वर्षा स्पाइक +60मिमी`,
-          as: `${ACTION_LABEL[severity].as} — বৰষুণ স্পাইক +60মিমি`,
+          en: `${SEVERITY_LABEL[severity].en} — Synoptic Surge Spike`,
+          hi: `${SEVERITY_LABEL[severity].hi} — मौसमी विसंगति स्पाइक`,
+          as: `${SEVERITY_LABEL[severity].as} — বতৰৰ স্পাইক`,
         },
       }
     })
     setFlyToken((n) => n + 1)
-    pushNotice("danger", t(activeLanguage, "spikeNotice"))
-  }, [activeLanguage, pushNotice])
+    pushNotice("danger", "Synoptic Anomaly Surge: Live convective precipitation spike (+30 mm/hr) simulated!")
+  }, [pushNotice])
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id))
@@ -328,6 +424,8 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       selectedRegion,
       activeLanguage,
       isOfflineMode,
+      filterScope,
+      setFilterScope,
       incidentReports,
       offlineQueue,
       visibleIncidents,
@@ -336,6 +434,10 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       flyToken,
       liveWeather,
       weatherLoading,
+      inspectingIncident,
+      setInspectingIncident,
+      activeRightTab,
+      setActiveRightTab,
       setSelectedRegionByName,
       selectRegion,
       selectCustomLocation,
@@ -349,11 +451,13 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       dismissNotification,
       pushNotice,
       resetToDefaultRegion,
+      resetToIndiaView,
     }),
     [
       selectedRegion,
       activeLanguage,
       isOfflineMode,
+      filterScope,
       incidentReports,
       offlineQueue,
       visibleIncidents,
@@ -362,6 +466,8 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       flyToken,
       liveWeather,
       weatherLoading,
+      inspectingIncident,
+      activeRightTab,
       setSelectedRegionByName,
       selectRegion,
       selectCustomLocation,
@@ -375,6 +481,7 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       dismissNotification,
       pushNotice,
       resetToDefaultRegion,
+      resetToIndiaView,
     ],
   )
 

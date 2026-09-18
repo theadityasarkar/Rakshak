@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { NER_REGIONS, localize, type Severity } from "@/src/data/ner-regions"
-import { bufferRadiusMeters, computeRiskIndex, formatCoord, severityColor } from "@/src/lib/risk"
+import { NER_REGIONS, localize, type Severity, type Language } from "@/src/data/ner-regions"
+import { bufferRadiusMeters, computeRiskIndex, formatCoord, severityColor, isLocationInSector } from "@/src/lib/risk"
 import { t } from "@/src/lib/i18n"
 import { useDisaster } from "@/src/context/DisasterContext"
 import type { IncidentReport } from "@/src/types/incident"
@@ -68,9 +68,27 @@ function FlyToTarget({
   token: number
 }) {
   const map = useMap()
+  const prevTokenRef = useRef(0)
+
   useEffect(() => {
-    map.flyTo([lat, lon], 12, { duration: 1.5 })
+    // token === 0: Initial load / National Overview -> KEEP FULL INDIA VIEW
+    if (token === 0) {
+      map.setView([21.2, 82.2], 4.2)
+      return
+    }
+    // token === -1: Explicit reset to Full India View button
+    if (token === -1) {
+      map.flyTo([21.2, 82.2], 4.2, { duration: 1.4 })
+      prevTokenRef.current = -1
+      return
+    }
+    // Only fly to specific location when token > 0 and token actually changed!
+    if (token > 0 && token !== prevTokenRef.current) {
+      prevTokenRef.current = token
+      map.flyTo([lat, lon], 10, { duration: 1.5 })
+    }
   }, [lat, lon, token, map])
+
   return null
 }
 
@@ -80,18 +98,60 @@ export interface RiskMapProps {
   showStations?: boolean
   showIncidents?: boolean
   showBuffer?: boolean
+  basemapMode?: "dark" | "satellite" | "topo"
 }
 
 export function RiskMap({
   showRainfallRadar = true,
-  showSlopeGradient = false,
+  showSlopeGradient = true,
   showStations = true,
   showIncidents = true,
   showBuffer = true,
+  basemapMode = "dark",
 }: RiskMapProps) {
-  const { selectedRegion, visibleIncidents, gpsOverride, flyToken, activeLanguage } = useDisaster()
+  const {
+    selectedRegion,
+    visibleIncidents,
+    gpsOverride,
+    flyToken,
+    activeLanguage,
+    filterScope,
+    selectRegion,
+    selectCustomLocation,
+    setInspectingIncident,
+  } = useDisaster()
   const [ready, setReady] = useState(false)
   const [radarTileUrl, setRadarTileUrl] = useState<string | null>(null)
+
+  const displayedStations = useMemo(() => {
+    if (filterScope === "all") return NER_REGIONS
+    return NER_REGIONS.filter((region) =>
+      isLocationInSector(
+        region.coords[0],
+        region.coords[1],
+        region.district,
+        region.state,
+        selectedRegion.coords,
+        selectedRegion.district,
+        selectedRegion.state,
+      ),
+    )
+  }, [filterScope, selectedRegion])
+
+  const displayedIncidents = useMemo(() => {
+    if (filterScope === "all") return visibleIncidents
+    return visibleIncidents.filter((incident) =>
+      isLocationInSector(
+        incident.lat,
+        incident.lon,
+        undefined,
+        undefined,
+        selectedRegion.coords,
+        selectedRegion.district,
+        selectedRegion.state,
+      ),
+    )
+  }, [filterScope, visibleIncidents, selectedRegion])
 
   useEffect(() => {
     setReady(true)
@@ -117,7 +177,17 @@ export function RiskMap({
 
   const focusLat = gpsOverride?.lat ?? selectedRegion.coords[0]
   const focusLon = gpsOverride?.lon ?? selectedRegion.coords[1]
-  const riskScore = computeRiskIndex(selectedRegion.slope, selectedRegion.rainfall, selectedRegion.soil)
+  const tempDeltaVal =
+    selectedRegion.tempDelta ??
+    (selectedRegion.slope !== undefined ? Number(((selectedRegion.slope / 65) * 25 - 10).toFixed(1)) : 2.5)
+  const precipRateVal =
+    selectedRegion.precipRate ??
+    (selectedRegion.rainfall !== undefined ? Math.round((selectedRegion.rainfall / 350) * 120) : 35)
+  const z500Val =
+    selectedRegion.z500 ??
+    (selectedRegion.soil !== undefined ? Math.round(5200 + (selectedRegion.soil / 100) * 750) : 5650)
+  const shearVal = selectedRegion.shear ?? 45
+  const riskScore = computeRiskIndex(tempDeltaVal, precipRateVal, z500Val, shearVal)
   const bufferColor = severityColor(selectedRegion.severity, riskScore)
   const bufferRadius = bufferRadiusMeters(selectedRegion.severity, riskScore)
 
@@ -147,7 +217,18 @@ export function RiskMap({
           100% { transform: scale(2.5); opacity: 0; }
         }
         .ner-dark-tiles {
-          filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(110%) saturate(40%);
+          filter: invert(100%) hue-rotate(180deg) brightness(82%) contrast(115%) saturate(35%);
+        }
+        .ner-3d-hillshade-dark {
+          filter: contrast(135%) brightness(115%);
+          mix-blend-mode: screen;
+        }
+        .ner-3d-hillshade {
+          filter: contrast(130%) brightness(95%);
+          mix-blend-mode: multiply;
+        }
+        .ner-topo-tiles {
+          filter: contrast(125%) saturate(120%);
         }
         .leaflet-popup-content-wrapper {
           background: #09090b;
@@ -165,30 +246,89 @@ export function RiskMap({
         .leaflet-control-attribution a { color: #d4d4d8 !important; }
       `}</style>
       <MapContainer
-        center={[focusLat, focusLon]}
-        zoom={8}
+        center={[21.2, 82.2]}
+        zoom={4.2}
+        minZoom={3.5}
+        zoomSnap={0.1}
         scrollWheelZoom
         zoomControl={false}
         className="size-full"
         style={{ background: "#09090b" }}
       >
-        <TileLayer
-          className="ner-dark-tiles"
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          maxZoom={19}
-        />
+        {/* Base Map Layers based on basemapMode (100% Free Public GIS Layers - ZERO API KEY REQUIRED) */}
+        {basemapMode === "dark" && (
+          <>
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              attribution='&copy; <a href="https://www.esri.com">Esri</a>, HERE, Garmin, &copy; OpenStreetMap'
+              maxZoom={16}
+            />
+            {showSlopeGradient && (
+              <TileLayer
+                className="ner-3d-hillshade-dark"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+                opacity={0.48}
+                maxNativeZoom={13}
+                maxZoom={16}
+                zIndex={405}
+                attribution='&copy; <a href="https://www.esri.com">Esri 3D Hillshade</a>'
+              />
+            )}
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+              attribution=""
+              maxZoom={16}
+              zIndex={425}
+            />
+          </>
+        )}
 
-        {/* Real Topographic Elevation & Slope Gradient Hillshade Layer (Contours & Elevation) */}
-        {showSlopeGradient && (
-          <TileLayer
-            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-            opacity={0.55}
-            maxNativeZoom={14}
-            maxZoom={19}
-            zIndex={410}
-            attribution='&copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
-          />
+        {basemapMode === "satellite" && (
+          <>
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution='&copy; <a href="https://www.esri.com">Esri World Imagery</a>'
+              maxZoom={18}
+            />
+            {showSlopeGradient && (
+              <TileLayer
+                className="ner-3d-hillshade"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+                opacity={0.35}
+                maxNativeZoom={13}
+                maxZoom={18}
+                zIndex={405}
+                attribution='&copy; <a href="https://www.esri.com">Esri 3D Hillshade</a>'
+              />
+            )}
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              attribution=""
+              maxZoom={18}
+              zIndex={425}
+            />
+          </>
+        )}
+
+        {basemapMode === "topo" && (
+          <>
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+              attribution='&copy; <a href="https://www.esri.com">Esri World Topo</a>'
+              maxZoom={18}
+            />
+            {showSlopeGradient && (
+              <TileLayer
+                className="ner-3d-hillshade"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+                opacity={0.3}
+                maxNativeZoom={13}
+                maxZoom={18}
+                zIndex={405}
+                attribution='&copy; <a href="https://www.esri.com">Esri 3D Hillshade</a>'
+              />
+            )}
+          </>
         )}
 
         {/* Real Doppler Precipitation Weather Radar Layer */}
@@ -206,36 +346,59 @@ export function RiskMap({
         <FlyToTarget lat={focusLat} lon={focusLon} token={flyToken} />
 
         {showStations &&
-          NER_REGIONS.map((region) => (
-            <Marker key={region.id} position={region.coords} icon={zoneIcons[region.severity]}>
-              <Popup>
-                <div className="min-w-[170px] text-xs">
-                  <div className="mb-1 text-sm font-semibold">
-                    {region.name} · {region.city}
+          displayedStations.map((region) => {
+            const tDelta =
+              region.tempDelta ??
+              (region.slope !== undefined ? Number(((region.slope / 65) * 25 - 10).toFixed(1)) : 2.5)
+            const pRate =
+              region.precipRate ??
+              (region.rainfall !== undefined ? Math.round((region.rainfall / 350) * 120) : 35)
+            return (
+              <Marker key={region.id} position={region.coords} icon={zoneIcons[region.severity]}>
+                <Popup>
+                  <div className="min-w-[190px] text-xs">
+                    <div className="mb-1 text-sm font-semibold">
+                      {region.name} · {region.city}
+                    </div>
+                    <div className="space-y-0.5 text-zinc-300">
+                      <div>
+                        Status: {localize(region.status, activeLanguage)}
+                      </div>
+                      <div>
+                        Thermal Anomaly: {tDelta > 0 ? `+${tDelta}` : tDelta}°C
+                      </div>
+                      <div>
+                        Precipitation Surge: {pRate} mm/hr
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => selectRegion(region)}
+                      className="mt-2 w-full rounded bg-emerald-600 py-1 text-[11px] font-semibold text-white hover:bg-emerald-500 transition-colors shadow-sm"
+                    >
+                      Focus This Sector 🎯
+                    </button>
                   </div>
-                  <div className="space-y-0.5 text-zinc-300">
-                    <div>
-                      {t(activeLanguage, "baselineZone")}: {localize(region.status, activeLanguage)}
-                    </div>
-                    <div>
-                      {t(activeLanguage, "slope")}: {region.slope}°
-                    </div>
-                    <div>
-                      {t(activeLanguage, "rainfall")}: {region.rainfall}mm
-                    </div>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+                </Popup>
+              </Marker>
+            )
+          })}
 
         {showIncidents &&
-          visibleIncidents.map((incident) => (
-            <IncidentMarker key={incident.id} incident={incident} lang={activeLanguage} />
+          displayedIncidents.map((incident) => (
+            <IncidentMarker
+              key={incident.id}
+              incident={incident}
+              lang={activeLanguage}
+              onInspect={(inc) => {
+                selectCustomLocation(inc.locationLabel, inc.lat, inc.lon)
+                setInspectingIncident(inc)
+              }}
+            />
           ))}
 
-        {/* Dynamic Risk Buffer Circle (8km - 15km) */}
-        {showBuffer && (
+        {/* Dynamic Extreme Weather Influence Radius Buffer (30km - 60km) */}
+        {showBuffer && flyToken > 0 && (
           <Circle
             key={`${selectedRegion.id}-${focusLat}-${focusLon}-${bufferRadius}-${bufferColor}`}
             center={[focusLat, focusLon]}
@@ -251,71 +414,103 @@ export function RiskMap({
         )}
 
         {/* Pulsing Epicenter Marker */}
-        {showBuffer && (
+        {showBuffer && flyToken > 0 && (
           <Marker position={[focusLat, focusLon]} icon={createActiveIcon(selectedRegion.severity, riskScore)}>
             <Popup>
-            <div className="min-w-[210px] p-1 text-xs">
-              <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-zinc-800 pb-1.5">
-                <span className="font-bold text-sm text-zinc-100">{selectedRegion.name}</span>
-                <span
-                  className="rounded px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider"
-                  style={{
-                    backgroundColor: `${bufferColor}22`,
-                    color: bufferColor,
-                    border: `1px solid ${bufferColor}50`,
-                  }}
-                >
-                  {riskScore}% Risk
-                </span>
-              </div>
-              <div className="space-y-1 text-zinc-300">
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Coordinates:</span>
-                  <span className="font-mono text-zinc-200">{formatCoord(focusLat, focusLon)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Hazard Buffer:</span>
-                  <span className="font-semibold" style={{ color: bufferColor }}>
-                    {(bufferRadius / 1000).toFixed(0)} km
+              <div className="min-w-[240px] p-1 text-xs">
+                <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-zinc-800 pb-1.5">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-sm text-zinc-100">{selectedRegion.name}</span>
+                    <span className="text-[10px] text-sky-400 font-semibold tracking-wide">
+                      Spatio-Temporal Anomaly Core
+                    </span>
+                  </div>
+                  <span
+                    className="rounded px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider shrink-0"
+                    style={{
+                      backgroundColor: `${bufferColor}22`,
+                      color: bufferColor,
+                      border: `1px solid ${bufferColor}50`,
+                    }}
+                  >
+                    {riskScore}% Anomaly Index
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Slope Gradient:</span>
-                  <span className="font-semibold text-zinc-200">{selectedRegion.slope}°</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">24h Cumulative Rain:</span>
-                  <span className="font-semibold text-zinc-200">{selectedRegion.rainfall} mm</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-400">Soil Moisture:</span>
-                  <span className="font-semibold text-zinc-200">{selectedRegion.soil}%</span>
-                </div>
-                <div className="mt-2 rounded border border-zinc-800 bg-zinc-900/90 p-1.5 text-[11px] leading-snug">
-                  <span className="font-semibold text-amber-400">SDRF Advisory: </span>
-                  <span className="text-zinc-300">{localize(selectedRegion.advice, activeLanguage)}</span>
+                <div className="space-y-1 text-zinc-300">
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Coordinates:</span>
+                    <span className="font-mono text-zinc-200">{formatCoord(focusLat, focusLon)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Weather Anomaly Influence Radius:</span>
+                    <span className="font-semibold text-zinc-100">
+                      {Math.round(bufferRadius / 1000)} km
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Thermal Anomaly:</span>
+                    <span className="font-semibold text-zinc-100 font-mono">
+                      {(selectedRegion.tempDelta ?? 2.5) > 0 ? `+${selectedRegion.tempDelta ?? 2.5}` : selectedRegion.tempDelta ?? 2.5}°C
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Precipitation Surge Rate:</span>
+                    <span className="font-semibold text-zinc-100 font-mono">
+                      {selectedRegion.precipRate ?? 35} mm/hr
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Z500 Synoptic Pressure Anomaly:</span>
+                    <span className="font-semibold text-zinc-100 font-mono">{z500Val} gpm</span>
+                  </div>
+                  {selectedRegion.shear !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-zinc-400">Vertical Wind Shear:</span>
+                      <span className="font-semibold text-zinc-100 font-mono">{selectedRegion.shear} kts</span>
+                    </div>
+                  )}
+                  <div className="mt-2 rounded border border-zinc-800 bg-zinc-900/90 p-1.5 text-[11px] leading-snug">
+                    <span className="font-semibold text-sky-400">MoES Advisory: </span>
+                    <span className="text-zinc-300">{localize(selectedRegion.advice, activeLanguage)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Popup>
-        </Marker>
-      )}
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
     </>
   )
 }
 
-function IncidentMarker({ incident, lang }: { incident: IncidentReport; lang: "en" | "hi" | "as" }) {
+function IncidentMarker({
+  incident,
+  lang,
+  onInspect,
+}: {
+  incident: IncidentReport
+  lang: Language
+  onInspect: (incident: IncidentReport) => void
+}) {
   const queued = incident.syncStatus !== "synced"
   return (
     <Marker position={[incident.lat, incident.lon]} icon={createIncidentIcon(queued)}>
       <Popup>
-        <div className="min-w-[160px] text-xs">
-          <div className="mb-1 text-sm font-semibold">{incident.type}</div>
-          <div className="text-zinc-300">{incident.locationLabel}</div>
-          <div className="text-zinc-400">{formatCoord(incident.lat, incident.lon)}</div>
-          <div className={queued ? "mt-1 text-sky-300" : "mt-1 text-rose-300"}>
-            {queued ? t(lang, "queued") : t(lang, "fieldPin")}
+        <div className="min-w-[190px] text-xs p-1 space-y-1.5">
+          <div className="font-bold text-sm text-zinc-100">{incident.type}</div>
+          <div className="text-zinc-300 font-medium">{incident.locationLabel}</div>
+          <div className="text-zinc-400 font-mono text-[11px]">{formatCoord(incident.lat, incident.lon)}</div>
+          <div className="flex items-center justify-between pt-1 border-t border-zinc-800">
+            <span className={queued ? "text-sky-300 font-semibold text-[11px]" : "text-rose-400 font-semibold text-[11px]"}>
+              {queued ? t(lang, "queued") : "Verified Alert"}
+            </span>
+            <button
+              type="button"
+              onClick={() => onInspect(incident)}
+              className="rounded bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white hover:bg-emerald-500 transition-colors shadow-xs"
+            >
+              Inspect SOP ↗
+            </button>
           </div>
         </div>
       </Popup>

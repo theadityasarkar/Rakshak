@@ -20,21 +20,21 @@ import { cn } from "@/lib/utils"
 import { useDashboardStore } from "@/lib/dashboard-store"
 import type { FieldReport, LeafletRiskMarker, ReportIssue, RiskLevel } from "@/lib/dashboard-data"
 
-const INCIDENT_TYPES = ["Road Blockage", "Crack / Slope Slip", "Flash Flood", "Rockfall"] as const
+const INCIDENT_TYPES = ["Road Blockage", "Convective Storm", "Flash Flood", "Cloudburst Surge"] as const
 type IncidentType = (typeof INCIDENT_TYPES)[number]
 
 const INCIDENT_TO_ISSUE: Record<IncidentType, ReportIssue> = {
   "Road Blockage": "Road Blocked",
-  "Crack / Slope Slip": "Crack Detected",
+  "Convective Storm": "Convective Storm",
   "Flash Flood": "Flooding",
-  Rockfall: "Landslide",
+  "Cloudburst Surge": "Cloudburst Surge",
 }
 
 const INCIDENT_TO_SEVERITY: Record<IncidentType, RiskLevel> = {
   "Road Blockage": "moderate",
-  "Crack / Slope Slip": "severe",
+  "Convective Storm": "severe",
   "Flash Flood": "moderate",
-  Rockfall: "severe",
+  "Cloudburst Surge": "severe",
 }
 
 export function FieldReportModal() {

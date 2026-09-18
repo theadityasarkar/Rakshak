@@ -5,9 +5,9 @@ import { DisasterProvider } from '@/src/context/DisasterContext'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'NER-Rakshak | AI Landslide & Risk Early Warning System',
+  title: 'Megh-Drishti | AI Spatio-Temporal Weather Anomaly Engine (MoES PS 26078)',
   description:
-    'AI-powered disaster management and early warning dashboard for the North Eastern Region of India — landslide risk, field reports, and weather alerts.',
+    'AI-Driven Spatio-Temporal Tracking of Extreme Weather Anomalies in Medium-Range Forecasts | Ministry of Earth Sciences (MoES PS 26078). Real-time synoptic tracking, GFS/ECMWF divergence analysis, and IMD/NCMRWF cycle early warning.',
   generator: 'v0.app',
   other: {
     'darkreader-lock': 'true',
@@ -35,6 +35,9 @@ export const viewport: Viewport = {
   colorScheme: 'dark',
   themeColor: '#0a0f0d',
   userScalable: true,
+  viewportFit: 'cover',
+  initialScale: 1,
+  width: 'device-width',
 }
 
 export default function RootLayout({
