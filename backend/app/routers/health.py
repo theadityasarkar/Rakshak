@@ -1,8 +1,8 @@
 """Health and model pipeline status router."""
 
 from fastapi import APIRouter
-from backend.app.config import settings
-from backend.app.schemas.health import HealthResponse, ModelsHealth
+from app.config import settings
+from app.schemas.health import HealthResponse, ModelsHealth
 
 router = APIRouter(prefix="/api/v1", tags=["Health & System"])
 

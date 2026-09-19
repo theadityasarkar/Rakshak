@@ -1,8 +1,8 @@
 """Pipeline performance and benchmark evaluation metrics router."""
 
 from fastapi import APIRouter
-from backend.app.services.demo_service import demo_service
-from backend.app.schemas.metrics import MetricsResponse
+from app.services.demo_service import demo_service
+from app.schemas.metrics import MetricsResponse
 
 router = APIRouter(prefix="/api/v1/metrics", tags=["Model Evaluation & Benchmarks"])
 

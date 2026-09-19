@@ -1,10 +1,10 @@
 """Anomalies, 4D GNN tracks, and 5km downscaling router."""
 
 from fastapi import APIRouter, HTTPException
-from backend.app.services.demo_service import demo_service
-from backend.app.schemas.anomaly import AnomalyListResponse, AnomalyItem
-from backend.app.schemas.track import AnomalyTrackResponse
-from backend.app.schemas.downscale import AnomalyDownscaledResponse
+from app.services.demo_service import demo_service
+from app.schemas.anomaly import AnomalyListResponse, AnomalyItem
+from app.schemas.track import AnomalyTrackResponse
+from app.schemas.downscale import AnomalyDownscaledResponse
 
 router = APIRouter(prefix="/api/v1/anomalies", tags=["Anomalies & AI Tracking"])
 

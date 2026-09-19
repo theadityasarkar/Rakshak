@@ -1,0 +1,43 @@
+# ML / Data pipeline dependencies
+# These are intentionally separated from backend/requirements.txt to keep
+# the Vercel serverless bundle small. Install locally with:
+#   pip install -r ml/requirements.txt
+
+# Numerical / data
+numpy>=1.26.0
+scipy>=1.12.0
+pandas>=2.2.0
+
+# Geospatial / NWP data
+xarray>=2024.2.0
+dask[complete]>=2024.3.0
+zarr>=2.17.0
+netCDF4>=1.6.5
+cftime>=1.6.3
+cartopy>=0.23.0
+pyproj>=3.6.0
+geopandas>=0.14.0
+rioxarray>=0.15.0
+
+# ML frameworks
+torch>=2.2.0
+torchvision>=0.17.0
+diffusers>=0.27.0
+transformers>=4.38.0
+
+# GNN (optional, behind USE_GNN=false flag)
+# dgl>=2.0.0  # Uncomment when USE_GNN=true
+
+# Visualisation / reporting
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# CDS API for ERA5 data download
+cdsapi>=0.7.0
+
+# Evaluation metrics
+properscoring>=0.1
+
+# Utilities
+tqdm>=4.66.0
+pyyaml>=6.0.1

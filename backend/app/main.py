@@ -6,8 +6,8 @@ MoES / NCMRWF (PS 26078): AI Tracking of Extreme Weather Anomalies (3-10 Day)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.config import settings
-from backend.app.routers import (
+from app.config import settings
+from app.routers import (
     health_router,
     anomalies_router,
     alerts_router,

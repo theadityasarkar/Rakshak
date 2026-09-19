@@ -4,8 +4,11 @@ import os
 from pathlib import Path
 from pydantic import BaseModel
 
-ROOT_DIR = Path(__file__).resolve().parent.parent.parent
-DATA_DIR = ROOT_DIR / "data" / "demo"
+# Resolve data directory relative to this file so the path works regardless
+# of whether Python's root is the repo root (local uvicorn) or /backend (Vercel).
+# __file__ = <repo>/backend/app/config.py  →  parent.parent = <repo>/backend
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = _BACKEND_DIR / "data" / "demo"
 
 
 class Settings(BaseModel):

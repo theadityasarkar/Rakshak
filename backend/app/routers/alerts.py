@@ -1,8 +1,8 @@
 """Alerts and 5km-radius subgrid hazard evaluation router."""
 
 from fastapi import APIRouter
-from backend.app.services.demo_service import demo_service
-from backend.app.schemas.alert import AlertEvaluateRequest, AlertEvaluateResponse
+from app.services.demo_service import demo_service
+from app.schemas.alert import AlertEvaluateRequest, AlertEvaluateResponse
 
 router = APIRouter(prefix="/api/v1/alerts", tags=["Subgrid Alerts (5km Radius)"])
 

@@ -4,9 +4,9 @@ import json
 import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from backend.app.config import settings
-from backend.app.schemas.anomaly import AnomalyItem
-from backend.app.schemas.alert import ActiveAlert
+from app.config import settings
+from app.schemas.anomaly import AnomalyItem
+from app.schemas.alert import ActiveAlert
 
 
 def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
