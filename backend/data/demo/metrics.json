@@ -1,0 +1,32 @@
+{
+  "provenance": "ncmrwf_nepsg_hindcast_evaluation_benchmark",
+  "dataset_version": "2026.1-demo",
+  "generated_at": "2026-09-19T00:00:00Z",
+  "pipeline_benchmarks": {
+    "tracker": {
+      "architecture": "Spherical GNN (DGL + PyTorch Geometric)",
+      "mesh_geometry": "Icosahedral Spherical Mesh (Level 6)",
+      "spatial_tracking_accuracy_pct": 94.2,
+      "mean_centroid_error_km": 14.6,
+      "crps": 0.18,
+      "training_baseline": "ERA5 30-Year Climatology (1991-2020)"
+    },
+    "downscaler": {
+      "architecture": "Conditional Denoising Diffusion Probabilistic Model (DDPM)",
+      "scale": "12km NEPS-G -> 5km Convective Subgrid",
+      "peak_amplitude_retention_pct": 96.4,
+      "spectral_smoothing_reversal_db": 8.7,
+      "crps": 0.168,
+      "physics_constraints": {
+        "mass_conservation_residual": 0.0028,
+        "moisture_flux_divergence_error_pct": 1.4,
+        "thermodynamic_laplacian_adherence_pct": 98.6
+      }
+    },
+    "overall_pipeline": {
+      "end_to_end_latency_ms": 340,
+      "target_horizon_days": "3 to 10 Days",
+      "alert_radius_km": 5.0
+    }
+  }
+}
