@@ -57,3 +57,16 @@ __v0_jsx-dev-runtime.ts
 .DS_Store
 *.pem
 Thumbs.db
+
+# Python & ML artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+env/
+venv/
+ENV/

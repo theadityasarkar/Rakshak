@@ -7,9 +7,7 @@ import {
   Radio,
   Database,
   Crosshair,
-  ExternalLink,
   ShieldAlert,
-  Search,
   CheckCircle2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -67,10 +65,10 @@ export function LiveFeed() {
 
   return (
     <>
-      <Card className="flex h-full flex-col border-zinc-800 bg-zinc-950">
-        <CardHeader className="space-y-2 pb-2.5 pt-3 px-3.5">
+      <Card className="flex h-full flex-col border-white/[0.08] bg-[#1A1918]">
+        <CardHeader className="space-y-2 pb-2.5 pt-3 px-3.5 border-b border-white/[0.08] bg-[#211F1E]">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm text-zinc-100">
+            <CardTitle className="flex items-center gap-2 text-sm text-[#ECEAE6] font-serif font-semibold">
               <Radio className="size-4 text-emerald-400" />
               {t(activeLanguage, "liveFeed")}
             </CardTitle>
@@ -79,20 +77,20 @@ export function LiveFeed() {
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
               </span>
-              <span>{filteredIncidents.length} Telemetry Events</span>
+              <span>{filteredIncidents.length} telemetry events</span>
             </span>
           </div>
 
           {/* Quick Severity Filter Pills */}
-          <div className="flex items-center gap-1 overflow-x-auto text-[10px] pb-0.5 scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-0.5 scrollbar-none">
             <button
               type="button"
               onClick={() => setSeverityFilter("all")}
               className={cn(
-                "rounded-md px-2 py-0.5 font-medium transition-all",
+                "rounded-md px-2 py-0.5 text-xs font-medium transition-all",
                 severityFilter === "all"
-                  ? "bg-zinc-700 text-white shadow-xs"
-                  : "bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+                  ? "bg-[#2A2725] text-[#ECEAE6] shadow-xs border border-white/[0.12]"
+                  : "bg-[#1A1918] text-[#A8A29A] hover:text-[#ECEAE6] border border-white/[0.05]"
               )}
             >
               All ({visibleIncidents.length})
@@ -101,46 +99,46 @@ export function LiveFeed() {
               type="button"
               onClick={() => setSeverityFilter("Critical")}
               className={cn(
-                "rounded-md px-2 py-0.5 font-medium transition-all",
+                "rounded-md px-2 py-0.5 text-xs font-medium transition-all",
                 severityFilter === "Critical"
                   ? "bg-red-600 text-white shadow-xs"
-                  : "bg-zinc-900 text-zinc-400 hover:text-red-400"
+                  : "bg-[#1A1918] text-[#A8A29A] hover:text-red-400 border border-white/[0.05]"
               )}
             >
-              🔴 Critical ({visibleIncidents.filter(i => i.severity === "Critical").length})
+              Critical ({visibleIncidents.filter(i => i.severity === "Critical").length})
             </button>
             <button
               type="button"
               onClick={() => setSeverityFilter("Severe")}
               className={cn(
-                "rounded-md px-2 py-0.5 font-medium transition-all",
+                "rounded-md px-2 py-0.5 text-xs font-medium transition-all",
                 severityFilter === "Severe"
                   ? "bg-orange-600 text-white shadow-xs"
-                  : "bg-zinc-900 text-zinc-400 hover:text-orange-400"
+                  : "bg-[#1A1918] text-[#A8A29A] hover:text-orange-400 border border-white/[0.05]"
               )}
             >
-              🟠 Severe ({visibleIncidents.filter(i => i.severity === "Severe").length})
+              Severe ({visibleIncidents.filter(i => i.severity === "Severe").length})
             </button>
             <button
               type="button"
               onClick={() => setSeverityFilter("Moderate")}
               className={cn(
-                "rounded-md px-2 py-0.5 font-medium transition-all",
+                "rounded-md px-2 py-0.5 text-xs font-medium transition-all",
                 severityFilter === "Moderate"
                   ? "bg-amber-600 text-white shadow-xs"
-                  : "bg-zinc-900 text-zinc-400 hover:text-amber-400"
+                  : "bg-[#1A1918] text-[#A8A29A] hover:text-amber-400 border border-white/[0.05]"
               )}
             >
-              🟡 Moderate ({visibleIncidents.filter(i => i.severity === "Moderate").length})
+              Moderate ({visibleIncidents.filter(i => i.severity === "Moderate").length})
             </button>
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 overflow-y-auto pt-1 px-3.5 pb-4">
+        <CardContent className="flex-1 overflow-y-auto pt-3 px-3.5 pb-4">
           <div className="flex flex-col gap-2.5">
             {filteredIncidents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center text-zinc-500 text-xs">
-                <ShieldAlert className="size-8 mb-2 opacity-40 text-zinc-400" />
+              <div className="flex flex-col items-center justify-center p-6 text-center text-[#A8A29A] text-xs">
+                <ShieldAlert className="size-8 mb-2 opacity-40 text-[#A8A29A]" />
                 <p>No reports match the selected filter.</p>
               </div>
             ) : (
@@ -166,12 +164,12 @@ export function LiveFeed() {
                       "group relative flex gap-3 rounded-lg border p-2.5 transition-all duration-200 cursor-pointer text-left select-none",
                       isFocused
                         ? "border-emerald-500 bg-emerald-950/20 shadow-md ring-1 ring-emerald-500/50"
-                        : "border-zinc-800/90 bg-zinc-900/50 hover:border-emerald-500/70 hover:bg-zinc-900 hover:shadow-lg active:scale-[0.99]"
+                        : "border-white/[0.08] bg-[#211F1E]/70 hover:border-emerald-500/60 hover:bg-[#2A2725] hover:shadow-lg active:scale-[0.99]"
                     )}
                     title="Click to focus map on this incident and inspect detailed SOP & telemetry"
                   >
                     {/* Thumbnail Photo with Zoom Overlay */}
-                    <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-zinc-800 border border-zinc-700/50 group-hover:border-emerald-500/50 transition-colors">
+                    <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-[#2A2725] border border-white/[0.08] group-hover:border-emerald-500/50 transition-colors">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={report.photo || "/placeholder.svg"}
@@ -196,51 +194,51 @@ export function LiveFeed() {
                                   ? "secondary"
                                   : "outline"
                             }
-                            className="text-[10px] px-1.5 py-0 font-semibold truncate"
+                            className="text-xs px-1.5 py-0 font-medium truncate"
                           >
                             {report.type}
                           </Badge>
                           {isFocused && (
-                            <span className="shrink-0 rounded bg-emerald-500 px-1 py-0 font-mono text-[9px] font-bold text-black animate-pulse">
-                              LOCKED
+                            <span className="shrink-0 rounded bg-emerald-500 px-1 py-0 font-mono text-xs font-semibold text-black animate-pulse">
+                              Locked
                             </span>
                           )}
                         </div>
 
-                        <span className="flex shrink-0 items-center gap-1 text-[10px] text-zinc-500 font-mono">
-                          <Clock className="size-3 text-zinc-500" />
+                        <span className="flex shrink-0 items-center gap-1 text-xs text-[#A8A29A] font-mono">
+                          <Clock className="size-3 text-[#A8A29A]" />
                           {now ? relativeTime(report.timestamp, activeLanguage) : "--"}
                         </span>
                       </div>
 
                       {/* Location Title */}
-                      <p className="text-xs font-bold text-zinc-100 group-hover:text-emerald-300 transition-colors line-clamp-1 leading-snug">
+                      <p className="text-xs font-semibold text-[#ECEAE6] group-hover:text-emerald-300 transition-colors line-clamp-1 leading-snug">
                         {report.locationLabel}
                       </p>
 
                       {/* Geotag & Interactive Hint */}
-                      <div className="flex items-center justify-between gap-2 text-[11px] text-zinc-400">
-                        <span className="flex items-center gap-1 font-mono text-zinc-300 text-[10px] truncate">
+                      <div className="flex items-center justify-between gap-2 text-xs text-[#A8A29A]">
+                        <span className="flex items-center gap-1 font-mono text-[#A8A29A] text-xs truncate">
                           <MapPin className="size-3 shrink-0 text-emerald-400" />
                           <span className="truncate">{formatCoord(report.lat, report.lon)}</span>
                         </span>
 
-                        <span className="shrink-0 flex items-center gap-0.5 text-[10px] font-bold text-emerald-400 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
+                        <span className="shrink-0 flex items-center gap-0.5 text-xs font-medium text-emerald-400 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
                           Inspect SOP ↗
                         </span>
                       </div>
 
                       {/* Reporter & Verification Strip */}
-                      <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-500 border-t border-zinc-800/60 pt-1 mt-0.5">
+                      <div className="flex items-center justify-between gap-2 text-xs text-[#948E85] border-t border-white/[0.08] pt-1 mt-0.5">
                         <span className="truncate">{report.reporter}</span>
                         {queued ? (
-                          <span className="flex items-center gap-1 text-sky-300 shrink-0 font-semibold">
-                            <Database className="size-2.5" />
+                          <span className="flex items-center gap-1 text-sky-300 shrink-0 font-medium">
+                            <Database className="size-3" />
                             {t(activeLanguage, "queued")}
                           </span>
                         ) : (
-                          <span className="shrink-0 text-emerald-400/90 font-medium flex items-center gap-0.5">
-                            <CheckCircle2 className="size-2.5 text-emerald-400" />
+                          <span className="shrink-0 text-emerald-400/90 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="size-3 text-emerald-400" />
                             {localize(SEVERITY_LABEL[report.severity], activeLanguage)}
                           </span>
                         )}

@@ -116,14 +116,14 @@ export function LocationSearchBar() {
             >
               <span className={cn("size-2 shrink-0 rounded-full", levelDot(d.level))} />
               <span className="flex-1 truncate">{d.name}</span>
-              <span className="shrink-0 text-[10px] text-muted-foreground">{d.state}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{d.state}</span>
             </button>
           ))}
         </div>
       )}
 
       {geoError && (
-        <p className="absolute top-full mt-1 rounded-md bg-card/95 px-2 py-1 text-[10px] text-red-400">
+        <p className="absolute top-full mt-1 rounded-md bg-card/95 px-2 py-1 text-xs text-red-400">
           {geoError}
         </p>
       )}

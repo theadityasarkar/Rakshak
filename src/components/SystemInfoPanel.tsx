@@ -54,14 +54,18 @@ const DIFFERENTIATORS = [
 ]
 
 const TECH_STACK = [
-  { name: "Next.js 15", role: "Server + Client Rendering", icon: "⚡" },
-  { name: "Open-Meteo API", role: "Free real-time NWP weather data", icon: "🌦️" },
-  { name: "Leaflet GIS", role: "Doppler radar + 3D terrain overlays", icon: "🗺️" },
+  { name: "PyTorch / JAX", role: "Custom physics-guided loss functions for GNN & Diffusion", icon: "🔥" },
+  { name: "Deep Graph Library (DGL)", role: "Icosahedral mesh GNN for spherical anomaly tracking", icon: "🕸️" },
+  { name: "HuggingFace Diffusers", role: "Amplitude-preserving generative downscaling (DDPM)", icon: "🧠" },
+  { name: "Xarray + Dask", role: "Parallelized 4D NetCDF/GRIB2 array processing", icon: "📊" },
+  { name: "MetPy", role: "Physical meteorological equations & diagnostics", icon: "🔬" },
+  { name: "Next.js 15", role: "Server + Client rendering for dashboard", icon: "⚡" },
+  { name: "Open-Meteo API", role: "Free real-time NWP weather data feed", icon: "🌦️" },
+  { name: "Leaflet GIS", role: "5km subgrid visualization + radar overlays", icon: "🗺️" },
   { name: "Gemini Pro LLM", role: "AI meteorological briefing generation", icon: "🤖" },
+  { name: "Cartopy", role: "Geographical map projections for GNN output", icon: "🌐" },
   { name: "IndexedDB Queue", role: "Offline-first field reporting buffer", icon: "📱" },
-  { name: "MoES Physics Engine", role: "In-browser Z500 + CAPE + shear computation", icon: "🔬" },
-  { name: "HuggingFace API", role: "External ML model plug-in support", icon: "🧠" },
-  { name: "Vercel / Any Cloud", role: "Stateless deploy → infinite scale", icon: "☁️" },
+  { name: "Vercel / NIC Cloud", role: "Stateless deploy → infinite scale", icon: "☁️" },
 ]
 
 export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
@@ -75,31 +79,31 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
       onClick={onClose}
     >
       <div
-        className="relative ml-auto flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-zinc-700/80 bg-zinc-950 text-zinc-100 shadow-2xl animate-in slide-in-from-right duration-300"
+        className="relative ml-auto flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-white/[0.08] bg-[#1A1918] text-[#ECEAE6] shadow-2xl animate-in slide-in-from-right duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900/80 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#211F1E] px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/25 via-sky-600/30 to-indigo-700/25 border border-cyan-500/40 shadow-[0_0_12px_rgba(6,182,212,0.25)]">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-cyan-500/20 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.25)]">
               <CloudRain className="size-5 text-cyan-300" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-white tracking-tight">Megh-Drishti</h2>
-              <p className="text-[11px] text-zinc-400 font-mono">MoES Problem Statement PS 26078</p>
+              <h2 className="text-base font-serif font-semibold text-[#ECEAE6] tracking-tight">Megh-Drishti</h2>
+              <p className="text-xs text-[#A8A29A] font-mono">MoES problem statement PS 26078</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex size-8 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
+            className="flex size-8 items-center justify-center rounded-lg bg-[#2A2725] text-[#A8A29A] hover:bg-[#211F1E] hover:text-[#ECEAE6] transition-colors"
           >
             <X className="size-4" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-0.5 border-b border-zinc-800/80 bg-zinc-900/50 px-3 py-2">
+        <div className="flex items-center gap-1 border-b border-white/[0.08] bg-[#211F1E]/60 px-3 py-2">
           {(["about", "impact", "diff", "tech"] as const).map((tab) => {
             const labels = { about: "About", impact: "Impact", diff: "Why Us?", tech: "Tech Stack" }
             return (
@@ -108,10 +112,10 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
                 type="button"
                 onClick={() => setActiveTab(tab)}
                 className={cn(
-                  "rounded-md px-2.5 py-1 text-[11px] font-semibold transition-all",
+                  "rounded-md px-3 py-1 text-xs font-medium transition-all",
                   activeTab === tab
                     ? "bg-cyan-600/80 text-white shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                    : "text-[#A8A29A] hover:text-[#ECEAE6] hover:bg-[#2A2725]"
                 )}
               >
                 {labels[tab]}
@@ -131,10 +135,10 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
                   <Info className="size-3.5" /> What is Megh-Drishti?
                 </h3>
                 <p className="text-sm text-zinc-200 leading-relaxed font-medium">
-                  An AI-powered, real-time spatio-temporal extreme weather tracking and early warning system built for India's Ministry of Earth Sciences (MoES).
+                  An AI-powered spatio-temporal extreme weather tracking and downscaling pipeline built for India's Ministry of Earth Sciences (MoES), using a two-stage hybrid AI architecture.
                 </p>
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  Megh-Drishti (मेघ-दृष्टि) translates to <em>"Cloud Vision"</em> — the system ingests live NWP model data (Open-Meteo, IMD/NCMRWF), computes an anomaly hazard index using in-browser meteorological physics, and delivers district-level SOP directives to field officers — all in under 3 minutes with zero infrastructure dependency.
+                  Megh-Drishti (मेघ-दृष्टि) translates to <em>"Cloud Vision"</em> — the system uses a <strong className="text-cyan-300">Spherical Graph Neural Network (GNN)</strong> to track anomalies on an icosahedral mesh, then pipes isolated regions into an <strong className="text-purple-300">Amplitude-Preserving Diffusion Model (DDPM)</strong> for 12km→5km generative downscaling. Physics-informed constraints ensure thermodynamic and fluid dynamics conservation.
                 </p>
               </div>
 
@@ -166,15 +170,15 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
                 </h3>
                 <div className="space-y-2 text-xs text-zinc-300">
                   {[
-                    "Live NWP ingestion from Open-Meteo (free, unlimited, government-grade)",
-                    "In-browser MoES meteorological physics engine (Z500 + CAPE + wind shear)",
+                    "Stage 1: Spherical GNN on icosahedral mesh (40,962 nodes) for EFI anomaly tracking",
+                    "Stage 2: Conditional DDPM diffusion model for 12km→5km amplitude-preserving downscaling",
+                    "Physics-constrained loss functions: moisture convergence + thermodynamic conservation",
+                    "Live NWP ingestion from Open-Meteo / NCMRWF NEPS-G ensemble data",
                     "Gemini Pro LLM generates DEOC-ready field SOPs in seconds",
                     "IndexedDB offline queue — field officers can report incidents with zero connectivity",
-                    "Leaflet GIS with Doppler radar + 3D terrain overlays",
-                    "District-level anomaly scoring → automatic severity classification (Critical/Severe/Moderate)",
                   ].map((point, i) => (
                     <div key={i} className="flex items-start gap-2">
-                      <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[9px] font-bold text-emerald-400 mt-0.5">{i + 1}</span>
+                      <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-semibold text-emerald-400 mt-0.5">{i + 1}</span>
                       <span>{point}</span>
                     </div>
                   ))}
@@ -193,10 +197,10 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
                     <div key={stat.label} className={cn("rounded-xl border p-3 space-y-1", stat.bg)}>
                       <div className="flex items-center gap-1.5">
                         <Icon className={cn("size-3.5", stat.color)} />
-                        <span className="text-[10px] font-medium text-zinc-400">{stat.label}</span>
+                        <span className="text-xs font-medium text-[#A8A29A]">{stat.label}</span>
                       </div>
-                      <p className={cn("text-xl font-black tabular-nums", stat.color)}>{stat.value}</p>
-                      <p className="text-[10px] text-zinc-500">{stat.sub}</p>
+                      <p className={cn("text-xl font-semibold tabular-nums", stat.color)}>{stat.value}</p>
+                      <p className="text-xs text-[#948E85]">{stat.sub}</p>
                     </div>
                   )
                 })}
@@ -297,8 +301,8 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
                   <div key={tech.name} className="flex items-center gap-3 rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-2.5">
                     <span className="text-lg">{tech.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-zinc-100">{tech.name}</p>
-                      <p className="text-[11px] text-zinc-400">{tech.role}</p>
+                      <p className="text-xs font-semibold text-[#ECEAE6]">{tech.name}</p>
+                      <p className="text-xs text-[#A8A29A]">{tech.role}</p>
                     </div>
                     <Cpu className="size-3.5 text-zinc-600 shrink-0" />
                   </div>
@@ -310,13 +314,15 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
                   <Globe className="size-3.5" /> Deployment Architecture
                 </h3>
                 <div className="space-y-1.5 text-xs text-zinc-300 font-mono bg-zinc-950/60 p-2.5 rounded-lg border border-zinc-800">
-                  <p className="text-emerald-400">Field Officer (Any Device)</p>
-                  <p className="text-zinc-500 pl-4">↓ HTTPS / IndexedDB (offline)</p>
-                  <p className="text-cyan-400">Megh-Drishti Next.js (NIC Cloud / Vercel)</p>
-                  <p className="text-zinc-500 pl-4">↓ Open-Meteo API / IMD DEWS feed</p>
-                  <p className="text-sky-400">NWP Models (NCMRWF 12Z / ECMWF)</p>
-                  <p className="text-zinc-500 pl-4">↓ Gemini Pro LLM</p>
-                  <p className="text-purple-400">DEOC Advisory Output (District Officers)</p>
+                  <p className="text-cyan-400">NEPS-G 12km Global Ensemble (NCMRWF/ECMWF)</p>
+                  <p className="text-zinc-500 pl-4">↓ Xarray + Dask (4D NetCDF/GRIB2)</p>
+                  <p className="text-indigo-400">Stage 1: Spherical GNN (DGL · Icosahedral Mesh)</p>
+                  <p className="text-zinc-500 pl-4">↓ EFI Bounding Box + Trajectory</p>
+                  <p className="text-purple-400">Stage 2: Diffusion DDPM (HuggingFace Diffusers)</p>
+                  <p className="text-zinc-500 pl-4">↓ 5km Subgrid Impact Zone</p>
+                  <p className="text-emerald-400">Alert API → Megh-Drishti Dashboard</p>
+                  <p className="text-zinc-500 pl-4">↓ Gemini Pro LLM Advisory</p>
+                  <p className="text-amber-400">DEOC Field SOP Output (District Officers)</p>
                 </div>
               </div>
             </div>
@@ -324,12 +330,12 @@ export function SystemInfoPanel({ open, onClose }: SystemInfoPanelProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-zinc-800 bg-zinc-900/80 px-5 py-3 flex items-center justify-between">
-          <span className="text-[10px] text-zinc-500 font-mono">MoES PS 26078 · Smart India Hackathon 2024</span>
+        <div className="border-t border-white/[0.08] bg-[#211F1E] px-5 py-3 flex items-center justify-between">
+          <span className="text-xs text-[#948E85] font-mono">MoES PS 26078 · Smart India Hackathon 2024</span>
           <button
             type="button"
             onClick={onClose}
-            className="text-[11px] font-semibold text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+            className="text-xs font-medium text-[#A8A29A] hover:text-[#ECEAE6] transition-colors flex items-center gap-1"
           >
             Close <X className="size-3" />
           </button>

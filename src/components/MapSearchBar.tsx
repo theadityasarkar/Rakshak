@@ -228,7 +228,7 @@ export function MapSearchBar() {
       </div>
 
       {open && (
-        <div className="absolute inset-x-0 top-full z-[600] mt-1 max-h-72 overflow-auto rounded-md border border-zinc-700/80 bg-zinc-950/95 p-1 shadow-2xl backdrop-blur">
+        <div className="absolute inset-x-0 top-full z-[600] mt-1 max-h-72 overflow-auto rounded-md border border-white/[0.08] bg-[#1A1918]/95 p-1 shadow-2xl backdrop-blur">
           {/* Direct Coordinate match */}
           {parsedCoords && (
             <button
@@ -239,13 +239,13 @@ export function MapSearchBar() {
             >
               <Navigation className="size-3.5 shrink-0 text-emerald-400" />
               <div className="flex-1">
-                <p className="font-semibold">Direct Coordinate Lock</p>
-                <p className="text-[11px] text-emerald-400/80 font-mono">
+                <p className="font-medium">Direct coordinate lock</p>
+                <p className="text-xs text-emerald-400/80 font-mono">
                   {parsedCoords.lat.toFixed(4)}° N, {parsedCoords.lon.toFixed(4)}° E
                 </p>
               </div>
-              <Badge variant="outline" className="border-emerald-500/50 text-[10px] text-emerald-400">
-                Spatial Point
+              <Badge variant="outline" className="border-emerald-500/50 text-xs text-emerald-400 font-medium">
+                Spatial point
               </Badge>
             </button>
           )}
@@ -253,8 +253,8 @@ export function MapSearchBar() {
           {/* Local regional results */}
           {localSuggestions.length > 0 && (
             <div className="py-1">
-              <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-                Monitored MoES Synoptic Hubs
+              <p className="px-3 py-1 text-xs font-medium text-[#A8A29A]">
+                Monitored MoES synoptic hubs
               </p>
               {localSuggestions.map((region) => (
                 <button
@@ -262,14 +262,14 @@ export function MapSearchBar() {
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => handleSelectLocal(region)}
-                  className="flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-xs hover:bg-zinc-800/80"
+                  className="flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-xs hover:bg-[#211F1E]"
                 >
                   <span className={cn("size-2 shrink-0 rounded-full", severityDot(region.severity))} />
-                  <span className="flex-1 truncate font-medium text-zinc-200">
+                  <span className="flex-1 truncate font-medium text-[#ECEAE6]">
                     {region.name}
-                    <span className="ml-1 font-normal text-zinc-400">({region.city})</span>
+                    <span className="ml-1 font-normal text-[#A8A29A]">({region.city})</span>
                   </span>
-                  <span className="shrink-0 text-[10px] text-zinc-500">{region.state}</span>
+                  <span className="shrink-0 text-xs text-[#948E85]">{region.state}</span>
                 </button>
               ))}
             </div>
@@ -277,10 +277,10 @@ export function MapSearchBar() {
 
           {/* Live OpenStreetMap Nominatim Results */}
           {geocodedResults.length > 0 && (
-            <div className="border-t border-zinc-800/80 py-1">
-              <p className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-sky-400">
+            <div className="border-t border-white/[0.08] py-1">
+              <p className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-sky-400">
                 <Globe className="size-3" />
-                Live OSM Geocoding
+                Live OSM geocoding
               </p>
               {geocodedResults.map((result) => {
                 const title = result.display_name.split(",")[0]
@@ -291,14 +291,14 @@ export function MapSearchBar() {
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleSelectGeocoded(result)}
-                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-xs hover:bg-zinc-800/80"
+                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-xs hover:bg-[#211F1E]"
                   >
                     <MapPin className="size-3.5 shrink-0 text-sky-400" />
                     <div className="flex-1 min-w-0">
-                      <p className="truncate font-medium text-zinc-100">{title}</p>
-                      <p className="truncate text-[10px] text-zinc-400">{subtitle}</p>
+                      <p className="truncate font-medium text-[#ECEAE6]">{title}</p>
+                      <p className="truncate text-xs text-[#A8A29A]">{subtitle}</p>
                     </div>
-                    <span className="shrink-0 font-mono text-[10px] text-zinc-500">
+                    <span className="shrink-0 font-mono text-xs text-[#948E85]">
                       {Number.parseFloat(result.lat).toFixed(2)}°, {Number.parseFloat(result.lon).toFixed(2)}°
                     </span>
                   </button>

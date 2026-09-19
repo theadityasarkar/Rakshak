@@ -196,7 +196,7 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
                   {(selectedRegion.tempDelta ?? 2.5) > 0 ? `+${selectedRegion.tempDelta ?? 2.5}` : selectedRegion.tempDelta ?? 2.5}°C
                 </p>
-                <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                <p className="text-xs text-zinc-400 truncate mt-0.5">
                   {Math.abs(selectedRegion.tempDelta ?? 2.5) > 4 ? "Severe Temp Deviation" : "Moderate Anomaly"}
                 </p>
               </div>
@@ -209,7 +209,7 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
                   {selectedRegion.precipRate ?? 35} mm/h
                 </p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
+                <p className="text-xs text-zinc-400 mt-0.5">
                   {(selectedRegion.precipRate ?? 35) > 60 ? "⚠️ Torrential Cloudburst" : "Moderate Convective"}
                 </p>
               </div>
@@ -222,7 +222,7 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
                   {selectedRegion.z500 ?? 5650} gpm
                 </p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
+                <p className="text-xs text-zinc-400 mt-0.5">
                   {Math.abs((selectedRegion.z500 ?? 5650) - 5600) > 200 ? "Strong Vorticity Dip" : "Synoptic Equilibrium"}
                 </p>
               </div>
@@ -235,7 +235,7 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                 <p className="mt-1 text-2xl font-bold text-white tabular-nums">
                   {selectedRegion.shear ?? 45} kts
                 </p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">
+                <p className="text-xs text-zinc-400 mt-0.5">
                   {(selectedRegion.shear ?? 45) > 50 ? "High Convective Shear" : "Moderate Boundary"}
                 </p>
               </div>
@@ -288,7 +288,7 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                   <span className="flex items-center gap-1.5">
                     <Wind className="size-4" /> Live Meteorological Telemetry (Open-Meteo API)
                   </span>
-                  <Badge variant="outline" className="border-sky-500/40 text-[10px] text-sky-300">
+                  <Badge variant="outline" className="border-sky-500/40 text-xs text-sky-300">
                     Real-Time Feed
                   </Badge>
                 </div>
@@ -339,7 +339,7 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
                   {shelter.amenities.map((item) => (
                     <span
                       key={item}
-                      className="rounded-md bg-zinc-800 px-2 py-0.5 text-[11px] text-zinc-300 font-medium"
+                      className="rounded-md bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300 font-medium"
                     >
                       ✓ {item}
                     </span>
@@ -363,11 +363,11 @@ export function AreaDetailsModal({ open, onOpenChange }: AreaDetailsModalProps) 
               >
                 <div className="space-y-0.5">
                   <p className="font-bold text-sm text-white">{contact.agency}</p>
-                  <p className="text-zinc-400 text-[11px]">{contact.role}</p>
+                  <p className="text-zinc-400 text-xs">{contact.role}</p>
                   <p className="font-mono text-emerald-400 font-semibold text-xs pt-0.5">{contact.phone}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wide block font-semibold">Toll Free</span>
+                  <span className="text-xs text-zinc-500 uppercase tracking-wide block font-semibold">Toll Free</span>
                   <Badge variant="secondary" className="font-mono font-bold text-sm bg-zinc-800 text-white mt-0.5">
                     {contact.toll}
                   </Badge>

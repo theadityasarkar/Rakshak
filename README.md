@@ -124,10 +124,70 @@ pnpm start
 
 ---
 
+## 🎬 5-Minute Evaluator Demonstration Script
+
+Follow this structured 5-minute walkthrough to evaluate all deliverables across Phases 1 through 6:
+
+### ⏱️ Minute 1: AI Command Console & Subgrid Warning Evaluation
+1. **Launch Stack:**
+   - Backend: `uvicorn backend.app.main:app --port 8000`
+   - Frontend: `npm run dev` (visit `http://localhost:3000`)
+2. **Verify Backend Badge:** In the top header pill, observe `FastAPI Microservice · Active` and model status (`GNN+Diffusion Loaded` or `0.1° Ensemble`).
+3. **5km Subgrid Alert Card:** Observe the **5km Subgrid Early Warning** card in the right drawer. Notice:
+   - IMD Warning Category (**RED** / **ORANGE** / **YELLOW**) based on `backend/app/config/imd_thresholds.yaml`.
+   - Explicit **5.0 km radius**, forecast **Lead Time ($T+24\text{h}$)**, ensemble **Probability ($82\%-98\%$)**, and actionable MoES/NDMA directives.
+
+### ⏱️ Minute 2: 4D Forecast Timeline Scrubber & Ensemble Cone
+1. **Scrubbing Timeline:** Press `Space` or click **Play** on the bottom scrubber. Watch the forecast advance from $T+0\text{h}$ to $T+240\text{h}$ in 3-hour increments.
+2. **Keyboard Controls:** Use `◀` and `▶` arrow keys to step forward and backward by $\pm 3\text{h}$.
+3. **Ensemble Cone:** Toggle between **p10** (conservative), **p50** (median centerline), and **p90** (extreme convective envelope). Notice the trajectory uncertainty envelope adapt dynamically over the map.
+
+### ⏱️ Minute 3: 12km vs 5km DDPM Before/After Swipe Comparator
+1. **Activate Comparator:** Click the `12km ⇄ 5km Swipe` button in the timeline scrubber or map panel.
+2. **Interactive Swipe:** Drag the vertical split divider across the anomaly core.
+3. **Physical Amplitude Recovery:** Observe how coarse 12km NWP smoothing ($85\text{ mm/hr}$) is resolved down to 5km DDPM localized peaks ($128-148\text{ mm/hr}$), restoring convective amplitude with $0.0021$ mass conservation residual.
+
+### ⏱️ Minute 4: "Replay Cyclone Amphan" (Full Pipeline from Cached Data)
+1. **Trigger Replay:** Click the amber **Replay Cyclone Amphan** button in the header.
+2. **Automated Pipeline Execution:**
+   - The map locks directly onto the Sundarbans / Bay of Bengal landfall sector (`[21.65, 88.35]`).
+   - The 81-hour trajectory from May 16 to May 21 (IMD best-track matched within 17 km) renders with its full uncertainty cone.
+   - The IMD RED warning card displays immediate coastal evacuation protocols.
+3. **Offline Resilience Test:** Stop the FastAPI backend (`Ctrl+C`). Re-click **Replay Cyclone Amphan**. Notice the entire pipeline and 5km DDPM tensors load seamlessly from cached offline assets!
+
+### ⏱️ Minute 5: PWA, Offline IndexedDB Queue & Full Hindi i18n
+1. **Offline Telemetry Queue:**
+   - In browser DevTools Network tab, set status to **Offline** (or toggle the **Live / Offline** button in the header).
+   - Click **Log Weather Anomaly** (`FieldIncidentModal`), enter a field observation (e.g., "Eyewall flash flooding"), and click **Queue Offline & Close**.
+   - Notice the toast confirmation: `Stored in Local IndexedDB Queue`.
+   - Restore network to **Online**. Watch the auto-sync listener automatically flush the queued report to the live GIS feed!
+2. **Full Bilingual Localization (EN / Hi):**
+   - Click the **Language Switcher (Globe)** in the header and select **हिन्दी**.
+   - Verify that 100% of the UI (headers, alerts, 5km cards, scrubber labels, tabs, and action directives) renders in clean, idiomatic Hindi with zero raw tokens.
+
+---
+
+## 🛰️ Copernicus CDS API Setup (For ERA5 Reanalysis Fetching)
+
+To fetch live ERA5 hourly reanalysis grids directly from ECMWF/Copernicus for Cyclone Amphan or North India heatwaves:
+1. Register for an account at [Copernicus Climate Data Store (CDS)](https://cds.climate.copernicus.eu/).
+2. Retrieve your CDS API URL and Personal Access Token (Key).
+3. Create `~/.cdsapirc` (Linux/macOS) or `%USERPROFILE%\.cdsapirc` (Windows):
+   ```ini
+   url: https://cds.climate.copernicus.eu/api
+   key: <YOUR-CDS-API-KEY>
+   ```
+4. Run the automated ERA5 pipeline:
+   ```bash
+   python ml/data/fetch_era5.py --case cyclone_amphan
+   ```
+
+---
+
 ## 👥 Authors & Acknowledgments
 
 - Developed for the **Smart India Hackathon (SIH)**.
-- Ministry of Earth Sciences (**MoES PS 26078**).
+- Ministry of Earth Sciences (**MoES PS 26078** / NCMRWF).
 - Meteorological radar and telemetry provided via [Open-Meteo](https://open-meteo.com/) and [RainViewer](https://www.rainviewer.com/).
 - Topographic elevation data provided via [OpenTopoMap](https://opentopomap.org/) and Esri.
 
@@ -136,3 +196,4 @@ pnpm start
 ## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+

@@ -1,0 +1,92 @@
+{
+  "provenance": "ddpm_conditional_diffusion_downscaled_sample",
+  "dataset_version": "2026.1-demo",
+  "generated_at": "2026-09-19T00:00:00Z",
+  "target_resolution": "5km",
+  "samples": {
+    "anomaly-brahmaputra-01": {
+      "coarse_nwp_12km": {
+        "precip_rate_mm_hr": 85.0,
+        "temp_delta_c": 4.2,
+        "z500_gpm": 5820.0,
+        "shear_kts": 52.0,
+        "smoothing_note": "Averaged across 144 km\u00b2 cell (spectral peak flattened)"
+      },
+      "downscaled_5km": {
+        "precip_peak_mm_hr": 128.0,
+        "temp_peak_c": 5.4,
+        "shear_peak_kts": 68.0,
+        "amplitude_recovery_pct": 50.6,
+        "crps_score": 0.174,
+        "mass_conservation_residual": 0.0028,
+        "grid_dimensions": [
+          64,
+          64
+        ],
+        "resolution_km": 5.0
+      },
+      "subgrid_bounding_box": {
+        "min_lat": 26.0445,
+        "max_lat": 26.2445,
+        "min_lon": 91.6362,
+        "max_lon": 91.8362
+      }
+    },
+    "anomaly-mumbai-02": {
+      "coarse_nwp_12km": {
+        "precip_rate_mm_hr": 95.0,
+        "temp_delta_c": -1.8,
+        "z500_gpm": 5480.0,
+        "shear_kts": 62.0,
+        "smoothing_note": "Averaged across 144 km\u00b2 marine-coastal boundary cell"
+      },
+      "downscaled_5km": {
+        "precip_peak_mm_hr": 142.5,
+        "temp_peak_c": -2.4,
+        "shear_peak_kts": 78.0,
+        "amplitude_recovery_pct": 50.0,
+        "crps_score": 0.162,
+        "mass_conservation_residual": 0.0031,
+        "grid_dimensions": [
+          64,
+          64
+        ],
+        "resolution_km": 5.0
+      },
+      "subgrid_bounding_box": {
+        "min_lat": 18.976,
+        "max_lat": 19.176,
+        "min_lon": 72.7777,
+        "max_lon": 72.9777
+      }
+    },
+    "cyclone-amphan": {
+      "coarse_nwp_12km": {
+        "precip_rate_mm_hr": 95.0,
+        "temp_delta_c": -2.8,
+        "z500_gpm": 5480.0,
+        "shear_kts": 58.0,
+        "smoothing_note": "Averaged across 144 km\u00b2 cell (eyewall convective peak attenuated)"
+      },
+      "downscaled_5km": {
+        "precip_peak_mm_hr": 148.0,
+        "temp_peak_c": -3.4,
+        "shear_peak_kts": 76.0,
+        "amplitude_recovery_pct": 55.8,
+        "crps_score": 0.162,
+        "mass_conservation_residual": 0.0021,
+        "grid_dimensions": [
+          64,
+          64
+        ],
+        "resolution_km": 5.0
+      },
+      "subgrid_bounding_box": {
+        "min_lat": 21.45,
+        "max_lat": 21.85,
+        "min_lon": 88.15,
+        "max_lon": 88.55
+      }
+    }
+  }
+}

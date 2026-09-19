@@ -222,7 +222,7 @@ export function FieldReportModal() {
                   className="object-cover"
                 />
                 {analyzing && (
-                  <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/70 px-2 py-1 text-[11px] font-medium text-amber-300">
+                  <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/70 px-2 py-1 text-xs font-medium text-amber-300">
                     <Loader2 className="size-3 animate-spin" />
                     AI analyzing fissure depth…
                   </span>
@@ -232,7 +232,7 @@ export function FieldReportModal() {
               <>
                 <Upload className="size-5 text-muted-foreground" />
                 <span className="font-medium text-foreground">Drag &amp; drop or tap to capture</span>
-                <span className="flex items-center gap-1 text-muted-foreground">
+                <span className="flex items-center gap-1 text-muted-foreground text-xs">
                   <Camera className="size-3" />
                   Camera capture supported
                 </span>
@@ -250,7 +250,7 @@ export function FieldReportModal() {
               size="sm"
               onClick={handleFetchGps}
               disabled={locating}
-              className="h-7 px-2 text-[11px]"
+              className="h-7 px-2 text-xs"
             >
               {locating ? (
                 <Loader2 className="size-3 animate-spin" data-icon="inline-start" />
@@ -262,7 +262,7 @@ export function FieldReportModal() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="lat" className="text-[11px] text-muted-foreground">
+              <Label htmlFor="lat" className="text-xs text-muted-foreground">
                 Latitude
               </Label>
               <Input
@@ -273,7 +273,7 @@ export function FieldReportModal() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="lng" className="text-[11px] text-muted-foreground">
+              <Label htmlFor="lng" className="text-xs text-muted-foreground">
                 Longitude
               </Label>
               <Input
@@ -285,7 +285,7 @@ export function FieldReportModal() {
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <Label htmlFor="road" className="text-[11px] text-muted-foreground">
+            <Label htmlFor="road" className="text-xs text-muted-foreground">
               Highway / Road Name
             </Label>
             <Input

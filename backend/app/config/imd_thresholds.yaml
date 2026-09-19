@@ -1,0 +1,71 @@
+# IMD (India Meteorological Department) Standardized Hazard Thresholds
+# MoES / NCMRWF Extreme Weather Early Warning System (PS 26078)
+
+imd_categories:
+  RED:
+    label: "Red Warning (Take Action)"
+    code: "RED"
+    color: "#ef4444"
+    bg_color: "rgba(239, 68, 68, 0.15)"
+    criteria:
+      precip_surge_mm_hr: 65.0      # Extremely heavy rainfall rate (>204.4 mm/day equiv)
+      temp_delta_c: 6.5             # Severe Heatwave departure >= 6.5°C
+      shear_wind_kts: 64.0          # Cyclone Hurricane Force wind >= 64 kts
+      efi_threshold: 0.80           # Extreme Forecast Index >= +0.80
+    action:
+      en: "MoES/NDMA RED WARNING: Immediate evacuation of vulnerable coastal & floodplain zones. Deploy NDRF/SDRF battallions. Total halt of marine, fishing, rail, and port transit."
+      hi: "एमओईएस/एनडीएमए रेड चेतावनी: संवेदनशील तटीय व बाढ़ संभावित क्षेत्रों से तत्काल सुरक्षित निकासी। एनडीआरएफ/एसडीआरएफ तैनात करें। नौकायन, रेल व बंदरगाह संचालन पूर्णतः बंद।"
+    probability_baseline: 92.0
+    urgency: "Immediate"
+    certainty: "Observed/High Probability"
+
+  ORANGE:
+    label: "Orange Alert (Be Prepared)"
+    code: "ORANGE"
+    color: "#f97316"
+    bg_color: "rgba(249, 115, 22, 0.15)"
+    criteria:
+      precip_surge_mm_hr: 35.0      # Very heavy rainfall (115.6 to 204.4 mm/day equiv)
+      temp_delta_c: 4.5             # Severe heatwave departure 4.5°C to 6.4°C
+      shear_wind_kts: 48.0          # Severe Gale Force wind 48-63 kts
+      efi_threshold: 0.50           # Extreme Forecast Index 0.50 to 0.79
+    action:
+      en: "MoES ORANGE ALERT: Keep quick-response disaster management cells on high alert. Regulate vulnerable transport corridors and secure temporary installations."
+      hi: "एमओईएस ऑरेंज अलर्ट: त्वरित प्रतिक्रिया आपदा प्रबंधन इकाइयों को उच्च सतर्कता पर रखें। संवेदनशील परिवहन मार्गों का नियमन करें व अस्थायी ढांचों को सुरक्षित करें।"
+    probability_baseline: 78.0
+    urgency: "Expected"
+    certainty: "Likely"
+
+  YELLOW:
+    label: "Yellow Watch (Be Updated)"
+    code: "YELLOW"
+    color: "#eab308"
+    bg_color: "rgba(234, 179, 8, 0.15)"
+    criteria:
+      precip_surge_mm_hr: 15.0      # Heavy rainfall (64.5 to 115.5 mm/day equiv)
+      temp_delta_c: 2.5             # Moderate thermal departure
+      shear_wind_kts: 28.0          # Squally wind 28-47 kts
+      efi_threshold: 0.20           # Extreme Forecast Index 0.20 to 0.49
+    action:
+      en: "MoES YELLOW WATCH: Continuous Doppler radar & ensemble tracking in progress. District cells advised to monitor municipal drainage and maintain helplines."
+      hi: "एमओईएस येलो वॉच: डॉपलर रडार और एन्सेम्बल से निरंतर निगरानी जारी। जिला आपदा नियंत्रण कक्षों को जल निकासी और हेल्पलाइन सक्रिय रखने के निर्देश।"
+    probability_baseline: 64.0
+    urgency: "Future"
+    certainty: "Possible"
+
+  GREEN:
+    label: "Green Advisory (No Warning)"
+    code: "GREEN"
+    color: "#22c55e"
+    bg_color: "rgba(34, 197, 94, 0.15)"
+    criteria:
+      precip_surge_mm_hr: 0.0
+      temp_delta_c: 0.0
+      shear_wind_kts: 0.0
+      efi_threshold: -1.0
+    action:
+      en: "MoES GREEN ADVISORY: Synoptically stable baseline. Routine meteorological observation; standard seasonal precautions apply."
+      hi: "एमओईएस ग्रीन परामर्श: सिनॉप्टिक रूप से स्थिर मौसम स्थिति। सामान्य मौसमी गतिविधियां अनुमत।"
+    probability_baseline: 20.0
+    urgency: "None"
+    certainty: "Unlikely"

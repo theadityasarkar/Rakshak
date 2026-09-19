@@ -1,0 +1,43 @@
+{
+  "provenance": "moes_cap_v1_synthetic_scenario",
+  "dataset_version": "2026.1-demo",
+  "generated_at": "2026-09-19T00:00:00Z",
+  "active_alerts": [
+    {
+      "id": "alert-brahmaputra-5km-01",
+      "anomaly_id": "anomaly-brahmaputra-01",
+      "urgency": "Immediate",
+      "severity": "Extreme",
+      "certainty": "Observed",
+      "headline": "5km Subgrid Extreme Convective Rainfall Alert",
+      "area_desc": "Kamrup Metro · Guwahati North Corridor (5km Radius)",
+      "centroid": [
+        26.1445,
+        91.7362
+      ],
+      "radius_km": 5.0,
+      "effective_utc": "2026-09-19T07:00:00Z",
+      "expires_utc": "2026-09-19T19:00:00Z",
+      "peak_intensity": "128 mm/hr (5km DDPM downscaled)",
+      "action_recommended": "Pre-deploy SDRF teams; restrict underpass and riverine transit corridors."
+    },
+    {
+      "id": "alert-mumbai-5km-02",
+      "anomaly_id": "anomaly-mumbai-02",
+      "urgency": "Immediate",
+      "severity": "Extreme",
+      "certainty": "Observed",
+      "headline": "5km Coastal Inundation & Squall Alert",
+      "area_desc": "Mumbai Offshore Western Seaboard (5km Radius)",
+      "centroid": [
+        19.076,
+        72.8777
+      ],
+      "radius_km": 5.0,
+      "effective_utc": "2026-09-19T06:30:00Z",
+      "expires_utc": "2026-09-19T18:30:00Z",
+      "peak_intensity": "142.5 mm/hr (5km DDPM downscaled)",
+      "action_recommended": "Suspend marine activities; alert municipal pumping stations."
+    }
+  ]
+}

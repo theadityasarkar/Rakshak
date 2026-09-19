@@ -162,4 +162,32 @@ export const SEED_INCIDENTS: IncidentReport[] = [
     syncStatus: "synced",
     regionId: "ramban",
   },
+  // --- NON-INDIA MARITIME & EQUATORIAL REGIONAL ALERTS (For toggle testing) ---
+  {
+    id: "seed-equatorial-cyclogenesis",
+    type: "Deep Cyclonic Vorticity Depression",
+    locationLabel: "South Indian Ocean Cyclogenesis Corridor",
+    lat: -2.1500,
+    lon: 76.8500,
+    photo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80",
+    timestamp: hourAgo(140),
+    reporter: "Regional Maritime Met Centre (Southern Basin)",
+    severity: "Severe",
+    syncStatus: "synced",
+    regionId: "international-oceanic",
+  },
+  {
+    id: "seed-gulf-oman-perturbation",
+    type: "Offshore Trough Surge",
+    locationLabel: "Northern Arabian Sea Maritime Channel",
+    lat: 24.8500,
+    lon: 61.2000,
+    photo: "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?auto=format&fit=crop&w=400&q=80",
+    timestamp: hourAgo(155),
+    reporter: "International Marine Weather Observation Buoy",
+    severity: "Moderate",
+    syncStatus: "synced",
+    regionId: "international-oceanic",
+  },
 ]
+

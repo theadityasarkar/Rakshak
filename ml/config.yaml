@@ -1,0 +1,86 @@
+# Megh-Drishti: ML & Tracking Configuration (MoES PS 26078)
+
+cases:
+  cyclone_amphan:
+    name: "Cyclone Amphan (Super Cyclonic Storm)"
+    type: "tropical_cyclone"
+    year: "2020"
+    month: "05"
+    days:
+      - "16"
+      - "17"
+      - "18"
+      - "19"
+      - "20"
+      - "21"
+    times:
+      - "00:00"
+      - "03:00"
+      - "06:00"
+      - "09:00"
+      - "12:00"
+      - "15:00"
+      - "18:00"
+      - "21:00"
+    # Geographic bounding box [North, West, South, East]
+    area:
+      - 28.0  # North lat
+      - 80.0  # West lon
+      - 8.0   # South lat
+      - 94.0  # East lon
+    surface_variables:
+      - "mean_sea_level_pressure"
+      - "10m_u_component_of_wind"
+      - "10m_v_component_of_wind"
+      - "total_precipitation"
+    pressure_levels:
+      - "850"
+      - "500"
+      - "250"
+    pressure_variables:
+      - "geopotential"
+      - "u_component_of_wind"
+      - "v_component_of_wind"
+      - "relative_humidity"
+    target_zarr: "data/zarr/cyclone_amphan.zarr"
+
+  north_india_heatwave:
+    name: "North India Severe Heatwave (May 2020)"
+    type: "heatwave"
+    year: "2020"
+    month: "05"
+    days:
+      - "22"
+      - "23"
+      - "24"
+      - "25"
+      - "26"
+      - "27"
+    times:
+      - "00:00"
+      - "06:00"
+      - "12:00"
+      - "18:00"
+    area:
+      - 34.0  # North lat
+      - 70.0  # West lon
+      - 22.0  # South lat
+      - 84.0  # East lon
+    surface_variables:
+      - "2m_temperature"
+      - "surface_solar_radiation_downwards"
+      - "total_cloud_cover"
+    pressure_levels:
+      - "850"
+      - "500"
+    pressure_variables:
+      - "geopotential"
+      - "temperature"
+    target_zarr: "data/zarr/north_india_heatwave.zarr"
+
+tracking:
+  use_gnn: false  # GNN on icosahedral mesh goes behind flag USE_GNN=false by default
+  efi_threshold: 0.65  # EFI range [-1.0, +1.0], anomaly triggered at > +0.65
+  zscore_threshold: 2.0  # > 2.0 standard deviations from 30-year climatology
+  min_cluster_size_pixels: 4
+  climatology_baseline_years: 30

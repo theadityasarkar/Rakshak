@@ -121,11 +121,14 @@ const DEFAULT_INCIDENT_PHOTOS: Record<IncidentType, string> = {
       <button
         type="button"
         onClick={openDrawer}
-        className="relative group overflow-hidden flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 px-2.5 py-1.5 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.3)] border border-red-400/40 transition-all hover:scale-[1.02] hover:shadow-[0_0_18px_rgba(244,63,94,0.5)] active:scale-[0.98] whitespace-nowrap"
+        className="relative group overflow-hidden flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 px-2.5 py-1.5 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.3)] border border-red-400/40 transition-all hover:scale-[1.02] hover:shadow-[0_0_18px_rgba(244,63,94,0.5)] active:scale-[0.98] whitespace-nowrap shrink-0"
       >
         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         <AlertTriangle className="size-3.5 text-red-100 shrink-0" />
-        <span className="hidden sm:inline tracking-tight">{t(activeLanguage, "newIncident")}</span>
+        <span className="hidden 2xl:inline tracking-tight">{t(activeLanguage, "newIncident")}</span>
+        <span className="hidden sm:inline 2xl:hidden tracking-tight">
+          {activeLanguage === "hi" ? "विसंगति" : "Log Incident"}
+        </span>
       </button>
 
       {open && (
@@ -208,7 +211,7 @@ const DEFAULT_INCIDENT_PHOTOS: Record<IncidentType, string> = {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={photoPreview} alt="Incident evidence" className="absolute inset-0 size-full object-cover" />
                     {analyzing && (
-                      <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/70 px-2 py-1 text-[11px] font-medium text-amber-300">
+                      <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/70 px-2 py-1 text-xs font-medium text-amber-300">
                         <Loader2 className="size-3 animate-spin" />
                         {t(activeLanguage, "analyzing")}
                       </span>
@@ -240,7 +243,7 @@ const DEFAULT_INCIDENT_PHOTOS: Record<IncidentType, string> = {
                     setLat(lat0.toFixed(4))
                     setLng(lon0.toFixed(4))
                   }}
-                  className="h-7 px-2 text-[11px]"
+                  className="h-7 px-2 text-xs"
                 >
                   <Crosshair className="size-3" data-icon="inline-start" />
                   {t(activeLanguage, "fetchGps")}
@@ -248,20 +251,20 @@ const DEFAULT_INCIDENT_PHOTOS: Record<IncidentType, string> = {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="lat" className="text-[11px] text-zinc-500">
+                  <Label htmlFor="lat" className="text-xs text-zinc-500">
                     {t(activeLanguage, "lat")}
                   </Label>
                   <Input id="lat" value={lat} onChange={(e) => setLat(e.target.value)} className="h-8 font-mono text-xs" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="lng" className="text-[11px] text-zinc-500">
+                  <Label htmlFor="lng" className="text-xs text-zinc-500">
                     {t(activeLanguage, "lon")}
                   </Label>
                   <Input id="lng" value={lng} onChange={(e) => setLng(e.target.value)} className="h-8 font-mono text-xs" />
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor="road" className="text-[11px] text-zinc-500">
+                <Label htmlFor="road" className="text-xs text-zinc-500">
                   {t(activeLanguage, "roadName")}
                 </Label>
                 <Input id="road" value={roadName} onChange={(e) => setRoadName(e.target.value)} className="h-8 text-xs" />

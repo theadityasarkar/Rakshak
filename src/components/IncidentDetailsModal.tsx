@@ -274,11 +274,11 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
             <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
               <Badge
                 variant={isCritical ? "destructive" : isSevere ? "secondary" : "outline"}
-                className="text-xs font-bold px-2.5 py-1 shadow-md uppercase tracking-wider"
+                className="text-xs font-semibold px-2.5 py-1 shadow-md"
               >
                 {incident.type}
               </Badge>
-              <Badge variant="outline" className="border-zinc-600 bg-black/70 text-zinc-300 font-mono text-[11px]">
+              <Badge variant="outline" className="border-white/[0.12] bg-black/70 text-[#ECEAE6] font-mono text-xs">
                 <Clock className="size-3 mr-1" />
                 {relativeTime(incident.timestamp, activeLanguage)}
               </Badge>
@@ -286,7 +286,7 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
 
             {/* Bottom Title & Reporter Watermark */}
             <div className="absolute bottom-3 left-3 right-3">
-              <h2 className="text-base sm:text-lg font-extrabold text-white drop-shadow-md leading-tight">
+              <h2 className="text-base sm:text-lg font-serif font-semibold text-white drop-shadow-md leading-tight">
                 {incident.locationLabel}
               </h2>
               <div className="mt-1 flex items-center justify-between text-xs text-zinc-300 drop-shadow">
@@ -294,8 +294,8 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
                   <Radio className="size-3.5 text-sky-400" />
                   <span>{incident.reporter}</span>
                 </span>
-                <span className="font-mono text-emerald-400 text-[11px] font-semibold">
-                  {queued ? "IndexedDB Offline Cache" : "Verified MoES Telemetry"}
+                <span className="font-mono text-emerald-400 text-xs font-medium">
+                  {queued ? "IndexedDB offline cache" : "Verified MoES telemetry"}
                 </span>
               </div>
             </div>
@@ -303,12 +303,12 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
 
           {/* Location & Coordinate Intel Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-                Exact Spatial Coordinates
+            <div className="rounded-lg border border-white/[0.08] bg-[#211F1E]/60 p-3">
+              <span className="text-xs font-sans text-[#A8A29A]">
+                Exact spatial coordinates
               </span>
               <div className="mt-1 flex items-center justify-between">
-                <span className="font-mono text-xs sm:text-sm font-bold text-emerald-400">
+                <span className="font-mono text-xs sm:text-sm font-semibold text-emerald-400">
                   {formatCoord(incident.lat, incident.lon)}
                 </span>
                 <Button
@@ -316,7 +316,7 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
                   variant="outline"
                   size="xs"
                   onClick={handleCopyCoords}
-                  className="h-6 text-[11px] gap-1 border-zinc-700 text-zinc-300 hover:text-white"
+                  className="h-6 text-xs gap-1 border-white/[0.08] text-[#ECEAE6] hover:bg-[#2A2725]"
                 >
                   {copied ? <Check className="size-3 text-emerald-400" /> : <Copy className="size-3" />}
                   <span>{copied ? "Copied" : "Copy"}</span>
@@ -324,17 +324,17 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
               </div>
             </div>
 
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-                Severity Assessment
+            <div className="rounded-lg border border-white/[0.08] bg-[#211F1E]/60 p-3">
+              <span className="text-xs font-sans text-[#A8A29A]">
+                Severity assessment
               </span>
               <div className="mt-1 flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-bold text-zinc-100">
+                <span className="text-xs sm:text-sm font-semibold text-[#ECEAE6]">
                   {localize(SEVERITY_LABEL[incident.severity], activeLanguage)}
                 </span>
                 <Badge
                   variant={isCritical ? "destructive" : isSevere ? "secondary" : "outline"}
-                  className="text-[10px] uppercase font-mono"
+                  className="text-xs font-mono font-medium"
                 >
                   {incident.severity}
                 </Badge>
@@ -343,54 +343,54 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
           </div>
 
           {/* Estimated Meteorological Signature (4 Core Sliders) */}
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3.5 space-y-2.5">
+          <div className="rounded-lg border border-white/[0.08] bg-[#211F1E]/40 p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-zinc-200 uppercase tracking-wide">
+              <span className="flex items-center gap-1.5 text-xs font-medium text-[#ECEAE6]">
                 <Gauge className="size-3.5 text-sky-400" />
-                <span>Synoptic Anomaly Parameters</span>
+                <span>Synoptic anomaly parameters</span>
               </span>
-              <span className="text-[10px] font-mono text-zinc-400">
+              <span className="text-xs font-mono text-[#A8A29A]">
                 Radar: {physics.reflectivity}
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <div className="rounded border border-zinc-800/80 bg-zinc-950 p-2 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-400">
+              <div className="rounded border border-white/[0.08] bg-[#1A1918] p-2 text-center">
+                <div className="flex items-center justify-center gap-1 text-xs text-[#A8A29A]">
                   <Thermometer className="size-3 text-red-400" />
                   <span>Temp Δ</span>
                 </div>
-                <p className="mt-0.5 font-mono text-xs sm:text-sm font-bold text-zinc-100">
+                <p className="mt-0.5 font-mono text-xs sm:text-sm font-semibold text-[#ECEAE6]">
                   {physics.tempDelta > 0 ? `+${physics.tempDelta}` : physics.tempDelta}°C
                 </p>
               </div>
 
-              <div className="rounded border border-zinc-800/80 bg-zinc-950 p-2 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-400">
+              <div className="rounded border border-white/[0.08] bg-[#1A1918] p-2 text-center">
+                <div className="flex items-center justify-center gap-1 text-xs text-[#A8A29A]">
                   <CloudRain className="size-3 text-blue-400" />
-                  <span>Precip Surge</span>
+                  <span>Precip surge</span>
                 </div>
-                <p className="mt-0.5 font-mono text-xs sm:text-sm font-bold text-zinc-100">
+                <p className="mt-0.5 font-mono text-xs sm:text-sm font-semibold text-[#ECEAE6]">
                   {physics.precipRate} mm/hr
                 </p>
               </div>
 
-              <div className="rounded border border-zinc-800/80 bg-zinc-950 p-2 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-400">
+              <div className="rounded border border-white/[0.08] bg-[#1A1918] p-2 text-center">
+                <div className="flex items-center justify-center gap-1 text-xs text-[#A8A29A]">
                   <Waves className="size-3 text-cyan-400" />
-                  <span>Z500 Anomaly</span>
+                  <span>Z500 anomaly</span>
                 </div>
-                <p className="mt-0.5 font-mono text-xs sm:text-sm font-bold text-zinc-100">
+                <p className="mt-0.5 font-mono text-xs sm:text-sm font-semibold text-[#ECEAE6]">
                   {physics.z500} gpm
                 </p>
               </div>
 
-              <div className="rounded border border-zinc-800/80 bg-zinc-950 p-2 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] text-zinc-400">
+              <div className="rounded border border-white/[0.08] bg-[#1A1918] p-2 text-center">
+                <div className="flex items-center justify-center gap-1 text-xs text-[#A8A29A]">
                   <Wind className="size-3 text-emerald-400" />
-                  <span>Wind Shear</span>
+                  <span>Wind shear</span>
                 </div>
-                <p className="mt-0.5 font-mono text-xs sm:text-sm font-bold text-zinc-100">
+                <p className="mt-0.5 font-mono text-xs sm:text-sm font-semibold text-[#ECEAE6]">
                   {physics.shear} kts
                 </p>
               </div>
@@ -399,11 +399,11 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
 
           {/* MoES Action Advisory & Field SOP */}
           <div className="rounded-lg border border-amber-500/40 bg-amber-950/20 p-3.5 space-y-1.5">
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold">
               <ShieldAlert className="size-4" />
-              <span>MoES Official Field Directive & SOP</span>
+              <span>MoES official field directive & SOP</span>
             </div>
-            <p className="text-xs leading-relaxed text-amber-100/90 font-medium">
+            <p className="text-xs leading-relaxed text-amber-100/90 font-sans">
               {physics.protocol}
             </p>
           </div>
@@ -411,14 +411,14 @@ export function IncidentDetailsModal({ incident, onClose }: IncidentDetailsModal
           {/* AI Situation Briefing Section */}
           {aiBrief && (
             <div className="rounded-lg border border-purple-500/40 bg-purple-950/20 p-3.5 space-y-2 animate-in fade-in-50 duration-200">
-              <div className="flex items-center justify-between text-purple-300 text-xs font-bold">
+              <div className="flex items-center justify-between text-purple-300 text-xs font-semibold">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="size-3.5" />
-                  <span>Gemini Pro Incident Briefing</span>
+                  <span>Gemini Pro incident briefing</span>
                 </span>
-                <span className="text-[10px] font-mono text-purple-400">MoES AI Engine</span>
+                <span className="text-xs font-mono text-purple-400">MoES AI engine</span>
               </div>
-              <p className="text-xs leading-relaxed text-zinc-200 whitespace-pre-line font-mono bg-zinc-950/60 p-2.5 rounded border border-purple-500/30">
+              <p className="text-xs leading-relaxed text-[#ECEAE6] whitespace-pre-line font-mono bg-[#1A1918] p-2.5 rounded border border-purple-500/30">
                 {aiBrief}
               </p>
             </div>

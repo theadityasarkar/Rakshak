@@ -24,6 +24,27 @@ export function computeAnomalyScore(
 }
 
 /**
+ * ECMWF/NCMRWF Standard Extreme Forecast Index (EFI)
+ * Range: [-1.0, +1.0] (dimensionless).
+ * Measures deviation of ensemble forecast distribution from 30-year M-climate (ERA5 baseline).
+ * Values > +0.70 indicate high risk of extreme convective anomalies.
+ */
+export function computeEFI(
+  tempDelta: number,
+  precipRate: number,
+  z500: number,
+  shear = 45,
+): number {
+  const tNorm = Math.max(-1, Math.min(1, tempDelta / 12))
+  const pNorm = Math.max(0, Math.min(1, (precipRate - 10) / 95))
+  const zNorm = Math.max(-1, Math.min(1, (z500 - 5600) / 320))
+  const sNorm = Math.max(-1, Math.min(1, (shear - 35) / 40))
+
+  const raw = 0.40 * pNorm + 0.30 * tNorm + 0.15 * Math.abs(zNorm) + 0.15 * Math.max(0, sNorm)
+  return Number(Math.max(-1.0, Math.min(1.0, raw)).toFixed(2))
+}
+
+/**
  * Spatio-Temporal Anomaly Hazard Index (%)
  */
 export function computeAnomalyIndex(
@@ -66,8 +87,54 @@ export function severityFromTelemetry(
 }
 
 /**
- * Dynamic MoES Action Advisory Generator according to Anomaly Score & Telemetry Parameters
- * Triggers MoES extreme weather warnings (Cloudburst, Heatwave, Depressions, Deluge)
+ * Colorblind-Safe Severity Configuration.
+ * Combines distinct geometric icon shapes + text labels + high-contrast colors.
+ */
+export function getSeverityConfig(severity: Severity) {
+  switch (severity) {
+    case "Critical":
+      return {
+        label: "Critical",
+        iconName: "AlertOctagon" as const,
+        colorHex: "#e11d48",
+        badgeClass: "border-rose-500/50 bg-rose-950/40 text-rose-200 shadow-[0_0_10px_rgba(225,29,72,0.3)]",
+        iconClass: "text-rose-400",
+        indicatorDot: "bg-rose-500 animate-pulse",
+      }
+    case "Severe":
+      return {
+        label: "Severe",
+        iconName: "AlertTriangle" as const,
+        colorHex: "#d97706",
+        badgeClass: "border-amber-500/50 bg-amber-950/40 text-amber-200 shadow-[0_0_10px_rgba(217,119,6,0.25)]",
+        iconClass: "text-amber-400",
+        indicatorDot: "bg-amber-500",
+      }
+    case "Moderate":
+      return {
+        label: "Moderate",
+        iconName: "ShieldAlert" as const,
+        colorHex: "#0284c7",
+        badgeClass: "border-sky-500/50 bg-sky-950/40 text-sky-200 shadow-[0_0_10px_rgba(2,132,199,0.2)]",
+        iconClass: "text-sky-400",
+        indicatorDot: "bg-sky-400",
+      }
+    case "Low":
+    default:
+      return {
+        label: "Low Risk",
+        iconName: "CheckCircle2" as const,
+        colorHex: "#059669",
+        badgeClass: "border-emerald-500/50 bg-emerald-950/40 text-emerald-200",
+        iconClass: "text-emerald-400",
+        indicatorDot: "bg-emerald-400",
+      }
+  }
+}
+
+/**
+ * Dynamic MoES Action Advisory Generator according to Anomaly Score & Telemetry Parameters.
+ * Conforms to AGENTS.md Rule 7: uses 'extreme convective rainfall risk', not 'cloudburst prediction'.
  */
 export function generateMoESAdvisory(
   score: number,
@@ -77,15 +144,15 @@ export function generateMoESAdvisory(
   shear?: number,
   lang: "en" | "hi" | "as" = "en",
 ): string {
-  // 1. Cloudburst Warning Trigger (High Precipitation Surge Rate)
+  // 1. Extreme Convective Rainfall Risk (High Precipitation Surge Rate)
   if (precipRate !== undefined && precipRate >= 70) {
     if (lang === "hi") {
-      return "एमओईएस रेड अलर्ट: तीव्र मेसोस्केल क्लाउडबर्स्ट चेतावनी। 70 मिमी/घंटा से अधिक वर्षा दर दर्ज। नदी बेसिन व निचले इलाकों को तुरंत खाली कराएं।"
+      return "एमओईएस रेड अलर्ट: अत्यधिक संवहनी भारी वर्षा जोखिम। 70 मिमी/घंटा से अधिक वर्षा दर दर्ज। नदी बेसिन व निचले इलाकों को तुरंत खाली कराएं।"
     }
     if (lang === "as") {
-      return "MoES ৰেড এলাৰ্ট: তীব্ৰ ডাৱৰ বিস্ফোৰণ সতৰ্কবাণী। ৭০ মিমি/ঘণ্টাতকৈ অধিক বৃষ্টিপাত। নদী উপত্যকা খালী কৰক আৰু NDRF মোতায়েন কৰক।"
+      return "MoES ৰেড এলাৰ্ট: চৰম সংবহনমূলক বৃষ্টিপাত সতৰ্কবাণী। ৭০ মিমি/ঘণ্টাতকৈ অধিক বৃষ্টিপাত। নদী উপত্যকা খালী কৰক আৰু NDRF মোতায়েন কৰক।"
     }
-    return "MoES RED ALERT: Severe Mesoscale Convective Cloudburst Warning. Surge rate >70 mm/hr detected. Pre-deploy SDRF/NDRF teams; mandate low-lying basin evacuation."
+    return "MoES RED ALERT: Severe Mesoscale Convective Rainfall Risk. Surge rate >70 mm/hr detected across meso-grid. Pre-deploy SDRF/NDRF teams; mandate low-lying basin evacuation."
   }
 
   // 2. Severe Heatwave Warning Trigger (High Positive Thermal Anomaly Δ & Low Precip)

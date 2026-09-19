@@ -1,0 +1,84 @@
+{
+  "shape": [
+    28,
+    141,
+    141
+  ],
+  "data_type": "float32",
+  "chunk_grid": {
+    "name": "regular",
+    "configuration": {
+      "chunk_shape": [
+        1,
+        141,
+        141
+      ]
+    }
+  },
+  "chunk_key_encoding": {
+    "name": "default",
+    "configuration": {
+      "separator": "/"
+    }
+  },
+  "fill_value": "NaN",
+  "codecs": [
+    {
+      "name": "bytes",
+      "configuration": {
+        "endian": "little"
+      }
+    },
+    {
+      "name": "zstd",
+      "configuration": {
+        "level": 0,
+        "checksum": false
+      }
+    }
+  ],
+  "attributes": {
+    "GRIB_paramId": 166,
+    "GRIB_dataType": "an",
+    "GRIB_numberOfPoints": 25521,
+    "GRIB_typeOfLevel": "surface",
+    "GRIB_stepUnits": 1,
+    "GRIB_stepType": "instant",
+    "GRIB_gridType": "regular_ll",
+    "GRIB_uvRelativeToGrid": 0,
+    "GRIB_NV": 0,
+    "GRIB_Nx": 181,
+    "GRIB_Ny": 141,
+    "GRIB_cfName": "unknown",
+    "GRIB_cfVarName": "v10",
+    "GRIB_gridDefinitionDescription": "Latitude/Longitude Grid",
+    "GRIB_iDirectionIncrementInDegrees": 0.25,
+    "GRIB_iScansNegatively": 0,
+    "GRIB_jDirectionIncrementInDegrees": 0.25,
+    "GRIB_jPointsAreConsecutive": 0,
+    "GRIB_jScansPositively": 0,
+    "GRIB_latitudeOfFirstGridPointInDegrees": 40.0,
+    "GRIB_latitudeOfLastGridPointInDegrees": 5.0,
+    "GRIB_longitudeOfFirstGridPointInDegrees": 55.0,
+    "GRIB_longitudeOfLastGridPointInDegrees": 100.0,
+    "GRIB_missingValue": 3.4028234663852886e+38,
+    "GRIB_name": "10 metre V wind component",
+    "GRIB_shortName": "10v",
+    "GRIB_totalNumber": 0,
+    "GRIB_units": "m s**-1",
+    "long_name": "10 metre V wind component",
+    "units": "m s**-1",
+    "standard_name": "unknown",
+    "GRIB_surface": 0.0,
+    "coordinates": "number valid_time latitude longitude expver",
+    "_FillValue": "AAAAAAAA+H8="
+  },
+  "dimension_names": [
+    "valid_time",
+    "latitude",
+    "longitude"
+  ],
+  "zarr_format": 3,
+  "node_type": "array",
+  "storage_transformers": []
+}

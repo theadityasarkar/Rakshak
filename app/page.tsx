@@ -31,7 +31,7 @@ function MobileLayout() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#1A1918] text-[#ECEAE6]">
       <DashboardHeader />
 
       {/* Content area — fills remaining space above bottom tab bar */}
@@ -54,7 +54,7 @@ function MobileLayout() {
       </div>
 
       {/* Bottom Tab Bar — fixed to bottom, always visible */}
-      <div className="shrink-0 flex items-stretch border-t border-zinc-800/80 bg-zinc-950/95 backdrop-blur-xl pb-safe">
+      <div className="shrink-0 flex items-stretch border-t border-white/[0.08] bg-[#1A1918]/95 backdrop-blur-xl pb-safe">
         {MOBILE_TABS.map(({ id, label, Icon }) => {
           const isActive = activeTab === id
           const showBadge = id === "feed" && visibleIncidents.length > 0
@@ -66,10 +66,10 @@ function MobileLayout() {
               type="button"
               onClick={() => handleTabChange(id)}
               className={cn(
-                "relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-semibold transition-all active:scale-95",
+                "relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium transition-all active:scale-95",
                 isActive
-                  ? "text-emerald-400"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "text-emerald-400 font-semibold"
+                  : "text-[#A8A29A] hover:text-[#ECEAE6]"
               )}
             >
               {/* Active indicator line at top */}
@@ -78,21 +78,21 @@ function MobileLayout() {
               )}
 
               <span className="relative">
-                <Icon className={cn("size-5", isActive ? "text-emerald-400" : "text-zinc-500")} />
+                <Icon className={cn("size-5", isActive ? "text-emerald-400" : "text-[#A8A29A]")} />
                 {/* Notification badge */}
                 {showBadge && !isActive && (
-                  <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-black text-black">
+                  <span className="absolute -right-2 -top-1.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-black font-mono">
                     {visibleIncidents.length > 9 ? "9+" : visibleIncidents.length}
                   </span>
                 )}
                 {showCriticalBadge && !isActive && criticalCount > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[8px] font-black text-white animate-pulse">
+                  <span className="absolute -right-2 -top-1.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white font-mono animate-pulse">
                     {criticalCount}
                   </span>
                 )}
               </span>
 
-              <span className={cn("leading-none", isActive ? "text-emerald-400" : "text-zinc-500")}>
+              <span className={cn("leading-none", isActive ? "text-emerald-400" : "text-[#A8A29A]")}>
                 {label}
               </span>
             </button>
@@ -105,7 +105,7 @@ function MobileLayout() {
 
 function DesktopLayout() {
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#1A1918] text-[#ECEAE6]">
       <DashboardHeader />
       <div className="grid flex-1 min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[305px_1fr_395px] xl:grid-cols-[320px_1fr_425px]">
         {/* Left Sidebar */}
@@ -114,7 +114,7 @@ function DesktopLayout() {
         </div>
 
         {/* Center Main Map Area */}
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-3">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-3.5">
           <MapPanel />
         </main>
 
@@ -141,7 +141,7 @@ export default function Page() {
   // Initial SSR / hydration fallback
   if (isDesktop === null) {
     return (
-      <div className="flex h-screen flex-col overflow-hidden bg-zinc-950 text-zinc-100">
+      <div className="flex h-screen flex-col overflow-hidden bg-[#1A1918] text-[#ECEAE6]">
         <DesktopLayout />
       </div>
     )

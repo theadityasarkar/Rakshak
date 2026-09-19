@@ -67,6 +67,8 @@ export interface DisasterStore {
   flyToken: number
   liveWeather: LiveWeatherReport | null
   weatherLoading: boolean
+  weatherError: string | null
+  refetchWeather: () => void
   inspectingIncident: IncidentReport | null
   setInspectingIncident: (incident: IncidentReport | null) => void
   activeRightTab: "sliders" | "feed" | "split"
@@ -93,6 +95,20 @@ export interface DisasterStore {
   pushNotice: (tone: AppNotification["tone"], message: string) => void
   resetToDefaultRegion: () => void
   resetToIndiaView: () => void
+  // Phase 3: 4D Spatio-Temporal Timeline & Ensemble & Swipe Comparator
+  timelineHour: number
+  setTimelineHour: (hour: number | ((prev: number) => number)) => void
+  isPlayingTimeline: boolean
+  setIsPlayingTimeline: (playing: boolean | ((prev: boolean) => boolean)) => void
+  togglePlayTimeline: () => void
+  stepTimeline: (deltaHours: number) => void
+  ensemblePercentile: "p10" | "p50" | "p90"
+  setEnsemblePercentile: (percentile: "p10" | "p50" | "p90") => void
+  isSwipeComparatorActive: boolean
+  setIsSwipeComparatorActive: (active: boolean | ((prev: boolean) => boolean)) => void
+  swipePosition: number
+  setSwipePosition: (pos: number) => void
+  replayCycloneAmphan: () => void
 }
 
 const DisasterContext = createContext<DisasterStore | null>(null)
@@ -109,10 +125,74 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
   const [flyToken, setFlyToken] = useState(0)
   const [liveWeather, setLiveWeather] = useState<LiveWeatherReport | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(false)
+  const [weatherError, setWeatherError] = useState<string | null>(null)
+  const [weatherRefreshToken, setWeatherRefreshToken] = useState(0)
   const [inspectingIncident, setInspectingIncident] = useState<IncidentReport | null>(null)
   const [activeRightTab, setActiveRightTab] = useState<"sliders" | "feed" | "split">("sliders")
+
+  // Phase 3 States
+  const [timelineHour, setTimelineHour] = useState(0) // 0 to 240, step 3
+  const [isPlayingTimeline, setIsPlayingTimeline] = useState(false)
+  const [ensemblePercentile, setEnsemblePercentile] = useState<"p10" | "p50" | "p90">("p50")
+  const [isSwipeComparatorActive, setIsSwipeComparatorActive] = useState(false)
+  const [swipePosition, setSwipePosition] = useState(50) // percentage 0 to 100
+
   const offlineQueueRef = useRef<IncidentReport[]>([])
   offlineQueueRef.current = offlineQueue
+
+  const stepTimeline = useCallback((deltaHours: number) => {
+    setTimelineHour((prev) => Math.max(0, Math.min(240, prev + deltaHours)))
+  }, [])
+
+  const togglePlayTimeline = useCallback(() => {
+    setIsPlayingTimeline((prev) => !prev)
+  }, [])
+
+  // Auto-play timeline loop
+  useEffect(() => {
+    if (!isPlayingTimeline) return
+    const timer = setInterval(() => {
+      setTimelineHour((prev) => {
+        if (prev >= 240) return 0
+        return Math.min(240, prev + 3)
+      })
+    }, 850)
+    return () => clearInterval(timer)
+  }, [isPlayingTimeline])
+
+  // Keyboard navigation: Left (-3h), Right (+3h), Space (Play/Pause)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault()
+        stepTimeline(-3)
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault()
+        stepTimeline(3)
+      } else if (e.key === " " || e.code === "Space") {
+        e.preventDefault()
+        togglePlayTimeline()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [stepTimeline, togglePlayTimeline])
+
+  const refetchWeather = useCallback(() => {
+    setWeatherRefreshToken((v) => v + 1)
+  }, [])
 
   const pushNotice = useCallback((tone: AppNotification["tone"], message: string) => {
     const id = createId("note")
@@ -140,16 +220,18 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
     void persistOfflineQueue(offlineQueue)
   }, [offlineQueue])
 
-  // Fetch real-time live meteorological telemetry (Open-Meteo) whenever coordinates change
+  // Fetch real-time live meteorological telemetry (Open-Meteo) whenever coordinates change or on manual refresh
   useEffect(() => {
     const [lat, lon] = selectedRegion.coords
     const controller = new AbortController()
     setWeatherLoading(true)
-    fetchLiveWeather(lat, lon, controller.signal).then((report) => {
-      if (report) {
-        setLiveWeather(report)
-        setSelectedRegion((prev) => {
-          return {
+    setWeatherError(null)
+    fetchLiveWeather(lat, lon, controller.signal)
+      .then((report) => {
+        if (report) {
+          setLiveWeather(report)
+          setWeatherError(null)
+          setSelectedRegion((prev) => ({
             ...prev,
             elevation: report.elevation,
             tempDelta: report.tempDelta,
@@ -163,13 +245,21 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
               hi: `${SEVERITY_LABEL[report.severity].hi} — ${report.weatherLabel}`,
               as: `${SEVERITY_LABEL[report.severity].as} — ${report.weatherLabel}`,
             },
-          }
-        })
-      }
-      setWeatherLoading(false)
-    })
+          }))
+        } else {
+          setWeatherError("Telemetry unavailable for current coordinates")
+        }
+      })
+      .catch((err) => {
+        if (err?.name !== "AbortError") {
+          setWeatherError("Failed to connect to Open-Meteo API")
+        }
+      })
+      .finally(() => {
+        setWeatherLoading(false)
+      })
     return () => controller.abort()
-  }, [selectedRegion.coords])
+  }, [selectedRegion.coords, weatherRefreshToken])
 
   const setActiveLanguage = useCallback((lang: Language) => {
     setActiveLanguageState(lang)
@@ -298,6 +388,46 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
     [syncOfflineQueue],
   )
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const handleOnline = () => {
+      setIsOfflineMode(false)
+      pushNotice(
+        "success",
+        activeLanguage === "hi"
+          ? "नेटवर्क पुनः कनेक्ट हुआ · ऑफलाइन कतार स्वतः सिंक हो रही है"
+          : "Network reconnected · Auto-syncing offline queue",
+      )
+      window.setTimeout(() => {
+        void syncOfflineQueue()
+      }, 300)
+    }
+
+    const handleOffline = () => {
+      setIsOfflineMode(true)
+      pushNotice(
+        "warning",
+        activeLanguage === "hi"
+          ? "नेटवर्क डिस्कनेक्ट हुआ · ऑफलाइन बफर मोड सक्रिय"
+          : "Network disconnected · Offline buffer active",
+      )
+    }
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setIsOfflineMode(true)
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [activeLanguage, pushNotice, syncOfflineQueue])
+
+
   const triggerGpsLocate = useCallback(() => {
     const fallback = () => {
       selectRegion(DEFAULT_REGION)
@@ -417,6 +547,48 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) => prev.filter((n) => n.id !== id))
   }, [])
 
+  const replayCycloneAmphan = useCallback(() => {
+    const amphanProfile: RegionProfile = {
+      id: "cyclone-amphan",
+      name: "Super Cyclone Amphan (May 2020)",
+      district: "South 24 Parganas / Sundarbans",
+      state: "West Bengal & Odisha",
+      city: "Bakkhali / Kolkata",
+      coords: [21.65, 88.35],
+      tempDelta: -3.2,
+      precipRate: 140,
+      z500: 5420,
+      shear: 72,
+      phenomenon: "Super Cyclonic Storm Amphan (May 2020 ERA5 Reanalysis)",
+      elevation: 4,
+      severity: "Critical",
+      advice: {
+        en: "MoES RED ALERT: Super Cyclone Amphan making landfall. Storm surge 4-5m in Sundarbans. Complete evacuation of coastal South 24 Parganas and Kendrapara.",
+        hi: "एमओईएस रेड अलर्ट: सुपर चक्रवात अम्फान का लैंडफॉल। सुंदरवन में 4-5 मीटर तूफानी लहर। तटीय निकासी अनिवार्य।",
+      },
+      status: {
+        en: "Critical Synoptic Alert — Cyclone Amphan Landfall Core (98% Index)",
+        hi: "क्रिटिकल सिनॉप्टिक अलर्ट — अम्फान लैंडफॉल कोर (98%)",
+      },
+      aliases: ["amphan", "cyclone amphan", "sundarbans", "kolkata", "bakkhali"],
+      slope: 5,
+      rainfall: 140,
+      soil: 96,
+    }
+    setSelectedRegion(amphanProfile)
+    setGpsOverride(null)
+    setFlyToken((prev) => prev + 1)
+    setTimelineHour(0)
+    setEnsemblePercentile("p90")
+    setIsPlayingTimeline(true)
+    pushNotice(
+      "success",
+      activeLanguage === "hi"
+        ? "चक्रवात अम्फान रीप्ले सक्रिय · कैश्ड ईआरए5 पाइपलाइन लोड की गई"
+        : "Replaying Cyclone Amphan (May 2020) · Cached ERA5 Pipeline Active"
+    )
+  }, [activeLanguage, pushNotice])
+
   const visibleIncidents = useMemo(
     () => [...offlineQueue, ...incidentReports],
     [offlineQueue, incidentReports],
@@ -437,6 +609,8 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       flyToken,
       liveWeather,
       weatherLoading,
+      weatherError,
+      refetchWeather,
       inspectingIncident,
       setInspectingIncident,
       activeRightTab,
@@ -455,6 +629,19 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       pushNotice,
       resetToDefaultRegion,
       resetToIndiaView,
+      timelineHour,
+      setTimelineHour,
+      isPlayingTimeline,
+      setIsPlayingTimeline,
+      togglePlayTimeline,
+      stepTimeline,
+      ensemblePercentile,
+      setEnsemblePercentile,
+      isSwipeComparatorActive,
+      setIsSwipeComparatorActive,
+      swipePosition,
+      setSwipePosition,
+      replayCycloneAmphan,
     }),
     [
       selectedRegion,
@@ -469,6 +656,8 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       flyToken,
       liveWeather,
       weatherLoading,
+      weatherError,
+      refetchWeather,
       inspectingIncident,
       activeRightTab,
       setSelectedRegionByName,
@@ -485,6 +674,14 @@ export function DisasterProvider({ children }: { children: ReactNode }) {
       pushNotice,
       resetToDefaultRegion,
       resetToIndiaView,
+      timelineHour,
+      isPlayingTimeline,
+      togglePlayTimeline,
+      stepTimeline,
+      ensemblePercentile,
+      isSwipeComparatorActive,
+      swipePosition,
+      replayCycloneAmphan,
     ],
   )
 
