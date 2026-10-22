@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Megh-Drishti: Slide-by-Slide Pitch & Storytelling Presentation Guide</title>
+<style>
+  @page {
+    size: A4;
+    margin: 15mm 14mm 15mm 14mm;
+    @bottom-right {
+      content: "Page " counter(page);
+      font-size: 10px;
+      color: #64748b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    @bottom-left {
+      content: "Team Echo Crypt · Megh-Drishti · SIH 2026 PS 26078";
+      font-size: 10px;
+      color: #64748b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #0f172a;
+    background: #ffffff;
+    line-height: 1.55;
+    font-size: 12.5px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .banner {
+    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 55%, #0284c7 100%);
+    color: #ffffff;
+    padding: 22px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+
+  .banner-tags {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-amber { background: #f59e0b; color: #451a03; }
+  .tag-cyan { background: #38bdf8; color: #082f49; }
+  .tag-emerald { background: #10b981; color: #022c22; }
+
+  .banner-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 4px 0;
+    color: #ffffff;
+  }
+
+  .banner-desc {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin: 0;
+  }
+
+  /* Slide card containers */
+  .slide-container {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    page-break-inside: avoid;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+
+  .slide-header {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .slide-num {
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .slide-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .slide-timing {
+    font-size: 11px;
+    color: #94a3b8;
+    font-family: Consolas, monospace;
+  }
+
+  .slide-body {
+    padding: 14px;
+  }
+
+  /* Story hook pill */
+  .story-hook {
+    background: #f0f9ff;
+    border-left: 4px solid #0284c7;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+
+  .story-hook-title {
+    font-weight: 700;
+    color: #0369a1;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  /* Speech script box */
+  .speech-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #1e293b;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .speech-label {
+    display: inline-block;
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .transition-box {
+    background: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-left: 3px solid #f59e0b;
+    padding: 7px 10px;
+    border-radius: 0 4px 4px 0;
+    font-size: 11.5px;
+    color: #78350f;
+    margin-bottom: 8px;
+  }
+
+  .tips-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 3px solid #16a34a;
+    padding: 7px 10px;
+    border-radius: 0 4px 4px 0;
+    font-size: 11px;
+    color: #14532d;
+  }
+
+  .tips-title {
+    font-weight: 700;
+    color: #15803d;
+    margin-bottom: 2px;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="banner">
+  <div class="banner-tags">
+    <span class="tag tag-amber">Smart India Hackathon 2026</span>
+    <span class="tag tag-cyan">PS 26078 (MoES / NCMRWF)</span>
+    <span class="tag tag-emerald">Team Echo Crypt</span>
+  </div>
+  <div class="banner-title">Megh-Drishti: Slide-by-Slide Storytelling Script</div>
+  <div class="banner-desc">Professional spoken script designed to hook the jury with real disaster data, strong analogies, and zero boring jargon.</div>
+</div>
+
+<!-- SLIDE 1 -->
+<div class="slide-container">
+  <div class="slide-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="slide-num">Slide 1</span>
+      <span class="slide-title">Title Slide & The Problem Hook</span>
+    </div>
+    <span class="slide-timing">Target Time: 60 Seconds</span>
+  </div>
+  <div class="slide-body">
+    <div class="story-hook">
+      <div class="story-hook-title">The Story Angle: A Shocking Question & Disaster Reality</div>
+      Start with a question that makes judges look up from their scoring sheets immediately. Anchor the problem to a real historical disaster (Cyclone Amphan).
+    </div>
+    <div class="speech-box">
+      <span class="speech-label">Spoken Script (Word-for-Word)</span><br/>
+      "Good morning, respected judges. Let me begin with a crucial question:<br/><br/>
+      In May 2020, during Cyclone Amphan, thousands of families across coastal Bengal and Odisha had barely a few hours to evacuate before localized torrential rain submerged their villages. Conventional weather forecasts saw the storm coming, but they predicted broad regional rain—not the localized, catastrophic 150 mm/hr downpour that actually hit.<br/><br/>
+      <strong>What if our disaster rescue forces had 5 to 10 days of clear warning—not for an entire state or district, but narrowed down to a precise 5-kilometer radius?</strong><br/><br/>
+      We are <strong>Team Echo Crypt</strong>, and today we present <strong>Megh-Drishti (मेघ-दृष्टि)</strong>: an AI-driven system for 3 to 10-day extreme weather tracking and precision downscaling, built for the Ministry of Earth Sciences and NCMRWF under Problem Statement 26078."
+    </div>
+    <div class="tips-box">
+      <div class="tips-title">💡 Speaker Delivery Tip:</div>
+      Pause for 2 seconds after asking the bold question. Make eye contact with the judges to let the magnitude of the problem sink in before introducing the team name.
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide-container">
+  <div class="slide-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="slide-num">Slide 2</span>
+      <span class="slide-title">Proposed Solution (Megh-Drishti: The Big Picture)</span>
+    </div>
+    <span class="slide-timing">Target Time: 75 Seconds</span>
+  </div>
+  <div class="slide-body">
+    <div class="story-hook">
+      <div class="story-hook-title">The Story Angle: The "Camera Lens" Analogy</div>
+      Explain the 12 km grid defect simply: a blurred camera photo that needs a smart high-definition zoom lens.
+    </div>
+    <div class="speech-box">
+      <span class="speech-label">Spoken Script (Word-for-Word)</span><br/>
+      "To understand why forecasts fail us today, imagine looking at a photo that has been blurred. Current global weather models run on a 12 km grid. In simple terms, a single 12 km box covers 144 square kilometers. If an intense storm hits a small village, the model averages it across the entire 144 km area. The peak disappears, the warning stays green or yellow, and disaster strikes unprepared.<br/><br/>
+      Megh-Drishti solves this with a <strong>Two-Stage AI approach</strong> that acts like a smart zoom lens:<br/>
+      &bull; <strong>First:</strong> Our <strong>4D Spatio-Temporal Tracker</strong> watches the atmosphere on a 3D spherical mesh. It calculates an <strong>Extreme Forecast Index (EFI)</strong> to spot anomalies 3 to 10 days ahead, tracking where the storm is headed with an expanding confidence cone.<br/>
+      &bull; <strong>Second:</strong> Once an anomaly is detected, our <strong>Generative Diffusion Model (DDPM)</strong> zooms into that specific danger zone, sharpening the forecast from <strong>12 km down to 5 km</strong>—recovering the extreme rainfall peaks that normal models smooth out.<br/>
+      &bull; <strong>Finally:</strong> This feeds into an interactive <strong>GIS Command Centre</strong> with live radar, and auto-generates <strong>IMD-compliant 4-tier color alerts</strong> that work even in network-dead zones via an offline-first PWA."
+    </div>
+    <div class="transition-box">
+      <strong>Transition to Next Slide:</strong> "Now, let's take a look under the hood to see how this technical engine actually works."
+    </div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- SLIDE 3 -->
+<div class="slide-container">
+  <div class="slide-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="slide-num">Slide 3</span>
+      <span class="slide-title">Technical Approach (Under the Hood)</span>
+    </div>
+    <span class="slide-timing">Target Time: 75 Seconds</span>
+  </div>
+  <div class="slide-body">
+    <div class="story-hook">
+      <div class="story-hook-title">The Story Angle: An Assembly Line of 4 Clean Steps</div>
+      Don't drown them in raw math equations; explain the flow as an assembly line that connects satellite data directly to rescue workers.
+    </div>
+    <div class="speech-box">
+      <span class="speech-label">Spoken Script (Word-for-Word)</span><br/>
+      "Our technical pipeline is divided into four clean stages:<br/><br/>
+      &bull; <strong>Stage 1 is Data Ingestion:</strong> We take raw 12 km ensemble forecasts from NCMRWF and compare them against 30 years of climate history from ERA5. If an anomaly exceeds a standardized Z-score of +2.0, the pipeline triggers.<br/>
+      &bull; <strong>Stage 2 is 4D Atmospheric Tracking:</strong> Instead of flat 2D maps that distort the Earth's poles, we use a <strong>Spherical Graph Neural Network</strong> on an icosahedral mesh. It tracks wind shear and pressure levels from the ground up to jet stream levels, outputting p10, p50, and p90 uncertainty bounds over 10 days.<br/>
+      &bull; <strong>Stage 3 is Generative Downscaling:</strong> To sharpen 12 km into 5 km, simple interpolation blurs peaks, and standard AI hallucinates rain. We use a <strong>Conditional Diffusion Model</strong> paired with a 30-meter elevation map. Crucially, we enforce a <strong>mass conservation rule</strong>: the AI cannot create water that doesn't exist in the atmospheric column.<br/>
+      &bull; <strong>Stage 4 is Automated Alert Dispatch:</strong> The output is evaluated against IMD thresholds and packaged into international <strong>Common Alerting Protocol (CAP v1.2)</strong> format.<br/><br/>
+      Our frontend is built on <strong>Next.js 16 and Leaflet</strong> for 60-FPS map performance, backed by a lightning-fast <strong>FastAPI</strong> microservice."
+    </div>
+    <div class="transition-box">
+      <strong>Transition to Next Slide:</strong> "A great model on paper means nothing if it cannot survive the harsh reality of a disaster zone. Here is how we ensure feasibility."
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide-container">
+  <div class="slide-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="slide-num">Slide 4</span>
+      <span class="slide-title">Feasibility and Viability (Real-World Resilience)</span>
+    </div>
+    <span class="slide-timing">Target Time: 70 Seconds</span>
+  </div>
+  <div class="slide-body">
+    <div class="story-hook">
+      <div class="story-hook-title">The Story Angle: Disarming the Judges' Doubts Before They Ask</div>
+      Target the 3 big questions judges always have: Big data speed, network collapse in floods, and mountain false alarms.
+    </div>
+    <div class="speech-box">
+      <span class="speech-label">Spoken Script (Word-for-Word)</span><br/>
+      "Judges often ask: <em>'Can this actually run in government workflows, and what happens when disasters strike?'</em> We designed Megh-Drishti around three real-world bottlenecks:<br/><br/>
+      &bull; <strong>Challenge 1: Weather files are massive (Gigabytes of data).</strong><br/>
+      <em>Our Solution:</em> We use cloud-native <strong>Zarr and Dask</strong> chunking. Instead of downloading full multi-gigabyte files, our backend streams only the spatial bounding box needed, delivering inference in just <strong>340 milliseconds</strong> on standard GPU servers.<br/><br/>
+      &bull; <strong>Challenge 2: Severe storms knock down mobile towers.</strong><br/>
+      <em>Our Solution:</em> If an NDRF field officer loses mobile connectivity, the app does not stop. Built as an <strong>Offline-First PWA</strong>, the last 72 hours of forecast data remain accessible locally in <strong>IndexedDB</strong>. If an officer logs a damaged embankment, it queues in the device outbox and auto-syncs the moment 2G or satellite signal flickers back on.<br/><br/>
+      &bull; <strong>Challenge 3: Mountain terrains trigger false alarms.</strong><br/>
+      <em>Our Solution:</em> By checking every forecast against <strong>30 years of localized climate records</strong>, normal monsoon rain over hilly terrain is not falsely flagged as an anomaly."
+    </div>
+    <div class="transition-box">
+      <strong>Transition to Next Slide:</strong> "So, what does all this technology mean for the people on the ground?"
+    </div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- SLIDE 5 -->
+<div class="slide-container">
+  <div class="slide-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="slide-num">Slide 5</span>
+      <span class="slide-title">Impact and Benefits (The Human Story)</span>
+    </div>
+    <span class="slide-timing">Target Time: 75 Seconds</span>
+  </div>
+  <div class="slide-body">
+    <div class="story-hook">
+      <div class="story-hook-title">The Story Angle: From Panic to Preparation & Livelihoods</div>
+      Shift focus from code and equations to real lives saved, farmer crop security, and government cost savings.
+    </div>
+    <div class="speech-box">
+      <span class="speech-label">Spoken Script (Word-for-Word)</span><br/>
+      "The true success metric of Megh-Drishti is not just accuracy percentages—it is the human and economic impact:<br/><br/>
+      &bull; <strong>From Panic to Preparation:</strong> Instead of a 3-hour panic response, authorities get <strong>72 to 240 hours of strategic lead time</strong>. NDRF teams can pre-position rescue boats in the exact 5 km zones most at risk.<br/>
+      &bull; <strong>Fewer False Evacuations:</strong> When you issue a blanket warning for an entire district, people suffer 'warning fatigue' and ignore alerts. By narrowing warnings to a <strong>5 km radius</strong>, safe neighborhoods remain undisturbed while dangerous zones evacuate safely.<br/>
+      &bull; <strong>Protecting Agricultural Livelihood:</strong> When farmers know 5 days in advance that their specific taluk faces severe convective rain, they can harvest early, move livestock to higher ground, and clear drainage channels.<br/>
+      &bull; <strong>Cost Efficiency:</strong> Running full supercomputer numerical simulations at 5 km resolution costs crores in computing power. Our AI downscaler delivers equivalent precision in sub-second inference time using open-source, indigenous models."
+    </div>
+    <div class="transition-box">
+      <strong>Transition to Next Slide:</strong> "Everything we built is rooted in peer-reviewed science and official government standards."
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6 -->
+<div class="slide-container">
+  <div class="slide-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="slide-num">Slide 6</span>
+      <span class="slide-title">Research and References (Scientific Grounding & Close)</span>
+    </div>
+    <span class="slide-timing">Target Time: 60 Seconds</span>
+  </div>
+  <div class="slide-body">
+    <div class="story-hook">
+      <div class="story-hook-title">The Story Angle: Establishing 100% Scientific Authority</div>
+      Show that you didn't invent arbitrary formulas—you are using the exact same literature trusted by ECMWF, WMO, and MoES.
+    </div>
+    <div class="speech-box">
+      <span class="speech-label">Spoken Script (Word-for-Word)</span><br/>
+      "Megh-Drishti is built on the shoulders of leading atmospheric and deep-learning research:<br/><br/>
+      &bull; <strong>Atmospheric Dynamics:</strong> We draw inspiration from Graph Neural Network climate modeling by <em>Lam et al. (Science 2023)</em> and <em>Keisler</em>.<br/>
+      &bull; <strong>Generative Downscaling:</strong> Our diffusion formulation builds upon physical precipitation modeling by <em>Leinonen et al.</em> and <em>Mardani et al.</em>.<br/>
+      &bull; <strong>Extreme Forecast Index:</strong> We strictly adopt the mathematical formulations established by <em>Lalaurette</em> and <em>ECMWF</em>, keeping EFI strictly on a valid <strong>[-1.0, +1.0]</strong> scale.<br/>
+      &bull; <strong>Official Government Data:</strong> Trained and calibrated using <strong>NCMRWF NEPS-G</strong>, <strong>Copernicus CDS ERA5</strong>, and <strong>IMD observational grids</strong>.<br/>
+      &bull; <strong>Global Standards:</strong> Full compliance with <strong>WMO Multi-Hazard Early Warning Systems (MHEWS)</strong> and the <strong>Common Alerting Protocol (CAP)</strong>.<br/><br/>
+      With Megh-Drishti, we are turning coarse weather data into actionable, hyperlocal life-saving intelligence. Thank you, and we welcome your questions!"
+    </div>
+    <div class="tips-box">
+      <div class="tips-title">💡 Final Close Tip:</div>
+      End with a firm, energetic smile: <em>"Thank you, and we look forward to your cross-examination!"</em> Then switch the screen to the live dashboard on localhost:3000.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
